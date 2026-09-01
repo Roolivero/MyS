@@ -1,0 +1,6 @@
+{
+  "python.defaultInterpreterPath": "${workspaceFolder}/.conda-env/bin/python",
+  "jupyter.kernels.excludePythonEnvironments": [
+    "${workspaceFolder}/.conda-env/bin/python"
+  ]
+}
