@@ -1,0 +1,3 @@
+{
+  "python.defaultInterpreterPath": "${workspaceFolder}/MySss/.conda-env/bin/python"
+}
