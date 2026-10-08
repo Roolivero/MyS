@@ -819,3 +819,348 @@ En el decaimiento radioactivo, `lambda` define la velocidad de desaparición de 
 El modelo es confiable para grandes cantidades de átomos y como descripción estadística. Para cantidades pequeñas, puede dar fracciones de átomos, y ahí deja de ser una representación literal.
 
 La ecuación se puede resolver para cualquier valor de `lambda`, pero solo representa decaimiento radioactivo cuando `lambda > 0`.
+
+---
+
+# Punto 4.a: Representación en Xcos
+
+## Sistema planteado
+
+El sistema pedido en el inciso 4.a es:
+
+```text
+dx/dt = x + 2y
+dy/dt = -5x + 2y
+```
+
+El objetivo fue representarlo mediante un diagrama en bloques en Xcos. Para eso se usó un integrador para cada variable:
+
+- La salida del primer integrador representa `x(t)`.
+- La salida del segundo integrador representa `y(t)`.
+
+Luego se construyó cada derivada con ganancias y sumadores.
+
+Para la primera ecuación:
+
+```text
+dx/dt = x + 2y
+```
+
+se suman dos señales: `x(t)` multiplicada por `1` e `y(t)` multiplicada por `2`.
+
+Para la segunda ecuación:
+
+```text
+dy/dt = -5x + 2y
+```
+
+se suman `x(t)` multiplicada por `-5` e `y(t)` multiplicada por `2`.
+
+De esta forma, el diagrama reproduce directamente el sistema de ecuaciones diferenciales.
+
+![Diagrama y simulación en Xcos del punto 4.a](imagenes_informe/xcos_4a.png)
+
+En la captura se observa el diagrama de bloques a la izquierda y la salida gráfica de la simulación a la derecha. Las dos curvas muestran la evolución temporal de `x(t)` e `y(t)`.
+
+
+
+---
+
+# Punto 4.b: Representación en Xcos
+
+## Sistema planteado
+
+El sistema pedido en el inciso 4.b es:
+
+```text
+dx/dt = -2x
+dy/dt = -3y
+```
+
+En este caso, las ecuaciones están desacopladas. Esto significa que la evolución de `x(t)` no depende de `y(t)`, y la evolución de `y(t)` no depende de `x(t)`.
+
+Para representarlo en Xcos se usó un integrador para cada variable:
+
+- La salida del primer integrador representa `x(t)`.
+- La salida del segundo integrador representa `y(t)`.
+
+La derivada de `x` se construyó realimentando `x(t)` con una ganancia `-2`:
+
+```text
+dx/dt = -2x
+```
+
+La derivada de `y` se construyó realimentando `y(t)` con una ganancia `-3`:
+
+```text
+dy/dt = -3y
+```
+
+![Diagrama y simulación en Xcos del punto 4.b](imagenes_informe/xcos_4b.png)
+
+En la captura se observa que cada variable tiene su propio lazo de realimentación. No hay conexiones cruzadas entre `x(t)` e `y(t)`, porque el sistema no mezcla ambas variables.
+
+Las gráficas muestran que tanto `x(t)` como `y(t)` disminuyen y se acercan a `0`. Además, `y(t)` cae más rápido porque su coeficiente es `-3`, mientras que el de `x(t)` es `-2`.
+
+## Conclusión del punto 4.b
+
+El inciso 4.b representa dos decaimientos exponenciales independientes. Xcos permite verlo directamente: cada integrador tiene una realimentación negativa, y eso hace que ambas variables tiendan a `0`.
+
+La diferencia con el punto 4.a es que acá no hay acoplamiento entre las variables. Cada ecuación se puede interpretar por separado.
+
+---
+
+# Punto 4.c: Representación en Xcos
+
+## Sistema planteado
+
+El sistema pedido en el inciso 4.c es:
+
+```text
+dx/dt = -3x + 2y
+dy/dt = -x
+```
+
+En este caso, las variables vuelven a estar acopladas. La ecuación de `x(t)` depende de `x(t)` y de `y(t)`, mientras que la ecuación de `y(t)` depende de `x(t)`.
+
+Para representarlo en Xcos se usó un integrador para cada variable:
+
+- La salida del primer integrador representa `x(t)`.
+- La salida del segundo integrador representa `y(t)`.
+
+La derivada de `x` se construyó sumando dos señales:
+
+```text
+-3x + 2y
+```
+
+Por eso, en el diagrama aparecen una ganancia `-3` aplicada a `x(t)` y una ganancia `2` aplicada a `y(t)`.
+
+La derivada de `y` se construyó con:
+
+```text
+-x
+```
+
+Por eso `x(t)` se realimenta hacia el integrador de `y(t)` con una ganancia `-1`.
+
+![Diagrama y simulación en Xcos del punto 4.c](imagenes_informe/xcos_4c.png)
+
+En la simulación se observa que `x(t)` baja desde `1`, cruza levemente el cero y llega aproximadamente a `-0.12` cerca de `t = 1.4`. Luego vuelve lentamente hacia `0`.
+
+También se observa que `y(t)` baja hasta aproximadamente `-0.25` cerca de `t = 0.7`, y después vuelve hacia `0`.
+
+El sistema es estable porque las dos variables tienden a `0`. No presenta una oscilación sostenida: `x(t)` cruza el cero una sola vez y luego se acerca al equilibrio sin alternar repetidamente de signo.
+
+La relación entre las variables se ve en la segunda ecuación. Como:
+
+```text
+dy/dt = -x
+```
+
+mientras `x(t)` es positiva, `y(t)` disminuye. Después, cuando `x(t)` se reduce y cambia de signo, `y(t)` deja de bajar y comienza a volver hacia `0`.
+
+## Comparación con el punto 4.a
+
+El punto 4.a y el punto 4.c son sistemas acoplados, porque en ambos una variable influye sobre la otra. Sin embargo, el comportamiento no es el mismo.
+
+En el punto 4.a las curvas tenían un comportamiento más oscilatorio y crecían en amplitud. En cambio, en el punto 4.c las curvas decaen hacia `0`.
+
+La diferencia está en los coeficientes del sistema. En el punto 4.c aparece una realimentación negativa fuerte sobre `x(t)`, dada por el término `-3x`. Ese término frena el crecimiento de `x(t)` y ayuda a que el sistema se estabilice.
+
+## Conclusión del punto 4.c
+
+El inciso 4.c muestra un sistema acoplado pero estable. Las variables se influyen entre sí, pero la dinámica total hace que ambas tiendan a `0`.
+
+Esto muestra que no alcanza con saber si un sistema está acoplado o no. También importa el signo y el valor de los coeficientes, porque ellos determinan si las soluciones crecen, oscilan o decaen.
+
+---
+
+# Punto 4.d: Representación en Xcos
+
+## Sistema planteado
+
+El sistema pedido en el inciso 4.d es:
+
+```text
+dx/dt = 10x - 18y
+dy/dt = 6x - 11y
+```
+
+Este sistema también está acoplado. La evolución de `x(t)` depende de `x(t)` y de `y(t)`, y lo mismo ocurre con `y(t)`.
+
+Para representarlo en Xcos se usó un integrador para cada variable:
+
+- La salida del primer integrador representa `x(t)`.
+- La salida del segundo integrador representa `y(t)`.
+
+La derivada de `x` se construyó sumando:
+
+```text
+10x - 18y
+```
+
+Por eso, en el diagrama aparecen una ganancia `10` aplicada a `x(t)` y una ganancia `-18` aplicada a `y(t)`.
+
+La derivada de `y` se construyó sumando:
+
+```text
+6x - 11y
+```
+
+Por eso aparecen una ganancia `6` aplicada a `x(t)` y una ganancia `-11` aplicada a `y(t)`.
+
+![Diagrama y simulación en Xcos del punto 4.d](imagenes_informe/xcos_4d.png)
+
+En la simulación se observa que las dos variables crecen con el tiempo. `x(t)` aumenta más rápido y llega a valores cercanos a `80` hacia el final del intervalo mostrado, mientras que `y(t)` también aumenta, aunque con menor amplitud.
+
+Esto indica que el sistema no tiende al equilibrio `0`. Aunque algunos coeficientes son negativos, la combinación de todos los términos genera una dirección de crecimiento.
+
+## Interpretación para la defensa
+
+Este sistema es inestable. Una forma de verlo es que, ante las condiciones iniciales usadas, las soluciones se alejan del origen en lugar de acercarse a `0`.
+
+La presencia de términos negativos no garantiza estabilidad. Lo importante es el efecto conjunto de todos los coeficientes del sistema.
+
+Comparado con el punto 4.c, ambos sistemas están acoplados, pero el comportamiento es opuesto. En el 4.c las variables decaían hacia `0`; en el 4.d las variables crecen y se alejan del equilibrio.
+
+## Conclusión del punto 4.d
+
+El inciso 4.d muestra un sistema acoplado e inestable. La simulación en Xcos permite ver directamente que las variables no se estabilizan, sino que aumentan con el tiempo.
+
+Esto refuerza la idea de que el comportamiento del sistema depende de la combinación completa de coeficientes, no solo de que haya términos positivos o negativos por separado.
+
+---
+
+# Punto 4.e: Representación en Xcos
+
+## Sistema planteado
+
+El sistema pedido en el inciso 4.e es:
+
+```text
+dx/dt = -y
+dy/dt = x - 2y
+```
+
+Este sistema está acoplado, porque la derivada de `x(t)` depende de `y(t)` y la derivada de `y(t)` depende tanto de `x(t)` como de `y(t)`.
+
+Para representarlo en Xcos se usó un integrador para cada variable:
+
+- La salida del primer integrador representa `x(t)`.
+- La salida del segundo integrador representa `y(t)`.
+
+La derivada de `x` se construyó con:
+
+```text
+-y
+```
+
+Por eso, la señal `y(t)` se conecta hacia el integrador de `x(t)` pasando por una ganancia `-1`.
+
+La derivada de `y` se construyó sumando:
+
+```text
+x - 2y
+```
+
+Por eso, en el diagrama aparecen una ganancia `1` aplicada a `x(t)` y una ganancia `-2` aplicada a `y(t)`.
+
+![Diagrama y simulación en Xcos del punto 4.e](imagenes_informe/xcos_4e.png)
+
+En la simulación se observa que `x(t)` baja de manera suave desde su valor inicial y se acerca a `0`. La variable `y(t)` primero aumenta, alcanza un máximo y después también baja hacia `0`.
+
+Esto muestra un comportamiento estable: ninguna variable crece sin límite y ambas terminan acercándose al equilibrio.
+
+## Interpretación para la defensa
+
+Aunque el sistema está acoplado, la combinación de coeficientes produce un decaimiento amortiguado. No aparece una oscilación sostenida ni un crecimiento explosivo.
+
+La variable `y(t)` crece al principio porque en su ecuación aparece el término positivo `x`. Pero al mismo tiempo tiene el término `-2y`, que actúa como freno. Por eso, después de alcanzar un máximo, `y(t)` empieza a disminuir.
+
+## Conclusión del punto 4.e
+
+El inciso 4.e muestra un sistema acoplado estable. Las variables se afectan entre sí, pero el término `-2y` amortigua la dinámica y hace que las soluciones tiendan a `0`.
+
+Comparado con el punto 4.d, este sistema no se aleja del equilibrio. La diferencia está en cómo se combinan los coeficientes de realimentación.
+
+---
+
+# Punto 4.f: Representación en Xcos
+
+## Sistema planteado
+
+El sistema pedido en el inciso 4.f es:
+
+```text
+dx/dt = y
+dy/dt = -y
+```
+
+En este caso, `y(t)` evoluciona de manera independiente, porque su derivada solo depende de `y(t)`. En cambio, `x(t)` depende de `y(t)`.
+
+Para representarlo en Xcos se usó un integrador para cada variable:
+
+- La salida del primer integrador representa `x(t)`.
+- La salida del segundo integrador representa `y(t)`.
+
+La derivada de `x` se construyó con:
+
+```text
+y
+```
+
+Por eso, la salida `y(t)` se conecta hacia el integrador de `x(t)` con una ganancia `1`.
+
+La derivada de `y` se construyó con:
+
+```text
+-y
+```
+
+Por eso, `y(t)` se realimenta hacia su propio integrador con una ganancia `-1`.
+
+![Diagrama y simulación en Xcos del punto 4.f](imagenes_informe/xcos_4f.png)
+
+En la simulación se observa que `y(t)` decae hacia `0`. Al mismo tiempo, `x(t)` aumenta al principio y luego se acerca a un valor constante.
+
+Esto ocurre porque `dx/dt = y`. Mientras `y(t)` es positiva, `x(t)` crece. Pero como `y(t)` se va apagando, el crecimiento de `x(t)` se frena hasta quedar prácticamente constante.
+
+## Interpretación para la defensa
+
+Este caso es distinto de los anteriores porque las dos variables no necesariamente tienden a `0`. La variable `y(t)` sí tiende a `0`, pero `x(t)` tiende a un valor constante.
+
+Eso pasa porque cuando `y(t)` llega a `0`, entonces:
+
+```text
+dx/dt = 0
+```
+
+Por lo tanto, `x(t)` deja de cambiar. El equilibrio no es solo el punto `(0, 0)`, sino cualquier estado con `y = 0`.
+
+## Conclusión del punto 4.f
+
+El inciso 4.f muestra un sistema donde una variable decae y la otra acumula el efecto de esa variable. `y(t)` se apaga, mientras que `x(t)` se estabiliza en un valor constante.
+
+Esto permite ver que un sistema puede estabilizarse sin que todas sus variables terminen necesariamente en `0`.
+
+---
+
+# Resumen del punto 4
+
+En todos los incisos se usó la misma idea de construcción en Xcos: un integrador por cada variable del sistema, y ganancias y sumadores para armar las derivadas.
+
+Lo que cambia entre los sistemas son los coeficientes. Esos coeficientes determinan si las soluciones crecen, decaen, oscilan o se estabilizan.
+
+| Sistema | Tipo | Comportamiento |
+|---|---|---|
+| (a) | Acoplado | Oscila y crece: inestable. |
+| (b) | Desacoplado | Decae sin oscilar: estable, con dos decaimientos independientes. |
+| (c) | Acoplado | Decae sin oscilar: estable. |
+| (d) | Acoplado | Crece sin oscilar: inestable en general. Si se arranca exactamente en la dirección `(3, 2)`, decae hacia `0`, pero esa es una condición especial. |
+| (e) | Acoplado | Decae sin oscilar, en el límite de oscilar: estable. |
+| (f) | Acoplado parcial | `y(t)` decae y `x(t)` se estabiliza en un valor fijo: hay infinitos equilibrios con `y = 0`. |
+
+La idea general es que el diagrama en bloques traduce directamente las ecuaciones diferenciales. Las condiciones iniciales cambian la escala o la trayectoria particular, pero la estabilidad depende principalmente de los coeficientes del sistema.
+
+Por eso, dos sistemas pueden estar acoplados y aun así comportarse de forma muy distinta: algunos se estabilizan, otros oscilan y otros crecen sin límite.
