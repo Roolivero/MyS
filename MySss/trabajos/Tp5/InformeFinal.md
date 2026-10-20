@@ -324,7 +324,7 @@ Por eso, un resultado puede ser correcto para la ecuación y aun así no represe
 ---
 
 
-## Conclusión del punto 1
+## Cierre del punto 1
 
 La Ley de Enfriamiento de Newton describe cómo un objeto se acerca a la temperatura ambiente cuando `k > 0`. El parámetro `Tamb` define el equilibrio, `k` define la rapidez del proceso, y `T0` solo define el punto de partida.
 
@@ -573,7 +573,7 @@ Conocer estos supuestos permite decidir cuándo confiar en el resultado y cuánd
 
 ---
 
-## Conclusión del punto 2
+## Cierre del punto 2
 
 El modelo de Malthus muestra que `r` es el parámetro principal. Su signo define si la población crece, queda constante o decrece, y su valor define qué tan rápido ocurre el cambio.
 
@@ -810,7 +810,7 @@ Estos supuestos son importantes porque el modelo no sigue átomo por átomo. Des
 
 ---
 
-## Conclusión del punto 3
+## Cierre del punto 3
 
 En el decaimiento radioactivo, `lambda` define la velocidad de desaparición de la sustancia y determina la vida media `ln(2)/lambda`. Cuanto mayor es `lambda`, menor es la vida media.
 
@@ -902,12 +902,6 @@ En la captura se observa que cada variable tiene su propio lazo de realimentaci�
 
 Las gráficas muestran que tanto `x(t)` como `y(t)` disminuyen y se acercan a `0`. Además, `y(t)` cae más rápido porque su coeficiente es `-3`, mientras que el de `x(t)` es `-2`.
 
-## Conclusión del punto 4.b
-
-El inciso 4.b representa dos decaimientos exponenciales independientes. Xcos permite verlo directamente: cada integrador tiene una realimentación negativa, y eso hace que ambas variables tiendan a `0`.
-
-La diferencia con el punto 4.a es que acá no hay acoplamiento entre las variables. Cada ecuación se puede interpretar por separado.
-
 ---
 
 # Punto 4.c: Representación en Xcos
@@ -968,12 +962,6 @@ En el punto 4.a las curvas tenían un comportamiento más oscilatorio y crecían
 
 La diferencia está en los coeficientes del sistema. En el punto 4.c aparece una realimentación negativa fuerte sobre `x(t)`, dada por el término `-3x`. Ese término frena el crecimiento de `x(t)` y ayuda a que el sistema se estabilice.
 
-## Conclusión del punto 4.c
-
-El inciso 4.c muestra un sistema acoplado pero estable. Las variables se influyen entre sí, pero la dinámica total hace que ambas tiendan a `0`.
-
-Esto muestra que no alcanza con saber si un sistema está acoplado o no. También importa el signo y el valor de los coeficientes, porque ellos determinan si las soluciones crecen, oscilan o decaen.
-
 ---
 
 # Punto 4.d: Representación en Xcos
@@ -1016,19 +1004,11 @@ En la simulación se observa que las dos variables crecen con el tiempo. `x(t)` 
 
 Esto indica que el sistema no tiende al equilibrio `0`. Aunque algunos coeficientes son negativos, la combinación de todos los términos genera una dirección de crecimiento.
 
-## Interpretación para la defensa
-
 Este sistema es inestable. Una forma de verlo es que, ante las condiciones iniciales usadas, las soluciones se alejan del origen en lugar de acercarse a `0`.
 
 La presencia de términos negativos no garantiza estabilidad. Lo importante es el efecto conjunto de todos los coeficientes del sistema.
 
 Comparado con el punto 4.c, ambos sistemas están acoplados, pero el comportamiento es opuesto. En el 4.c las variables decaían hacia `0`; en el 4.d las variables crecen y se alejan del equilibrio.
-
-## Conclusión del punto 4.d
-
-El inciso 4.d muestra un sistema acoplado e inestable. La simulación en Xcos permite ver directamente que las variables no se estabilizan, sino que aumentan con el tiempo.
-
-Esto refuerza la idea de que el comportamiento del sistema depende de la combinación completa de coeficientes, no solo de que haya términos positivos o negativos por separado.
 
 ---
 
@@ -1072,17 +1052,9 @@ En la simulación se observa que `x(t)` baja de manera suave desde su valor inic
 
 Esto muestra un comportamiento estable: ninguna variable crece sin límite y ambas terminan acercándose al equilibrio.
 
-## Interpretación para la defensa
-
 Aunque el sistema está acoplado, la combinación de coeficientes produce un decaimiento amortiguado. No aparece una oscilación sostenida ni un crecimiento explosivo.
 
 La variable `y(t)` crece al principio porque en su ecuación aparece el término positivo `x`. Pero al mismo tiempo tiene el término `-2y`, que actúa como freno. Por eso, después de alcanzar un máximo, `y(t)` empieza a disminuir.
-
-## Conclusión del punto 4.e
-
-El inciso 4.e muestra un sistema acoplado estable. Las variables se afectan entre sí, pero el término `-2y` amortigua la dinámica y hace que las soluciones tiendan a `0`.
-
-Comparado con el punto 4.d, este sistema no se aleja del equilibrio. La diferencia está en cómo se combinan los coeficientes de realimentación.
 
 ---
 
@@ -1126,8 +1098,6 @@ En la simulación se observa que `y(t)` decae hacia `0`. Al mismo tiempo, `x(t)`
 
 Esto ocurre porque `dx/dt = y`. Mientras `y(t)` es positiva, `x(t)` crece. Pero como `y(t)` se va apagando, el crecimiento de `x(t)` se frena hasta quedar prácticamente constante.
 
-## Interpretación para la defensa
-
 Este caso es distinto de los anteriores porque las dos variables no necesariamente tienden a `0`. La variable `y(t)` sí tiende a `0`, pero `x(t)` tiende a un valor constante.
 
 Eso pasa porque cuando `y(t)` llega a `0`, entonces:
@@ -1137,12 +1107,6 @@ dx/dt = 0
 ```
 
 Por lo tanto, `x(t)` deja de cambiar. El equilibrio no es solo el punto `(0, 0)`, sino cualquier estado con `y = 0`.
-
-## Conclusión del punto 4.f
-
-El inciso 4.f muestra un sistema donde una variable decae y la otra acumula el efecto de esa variable. `y(t)` se apaga, mientras que `x(t)` se estabiliza en un valor constante.
-
-Esto permite ver que un sistema puede estabilizarse sin que todas sus variables terminen necesariamente en `0`.
 
 ---
 
@@ -1164,3 +1128,323 @@ Lo que cambia entre los sistemas son los coeficientes. Esos coeficientes determi
 La idea general es que el diagrama en bloques traduce directamente las ecuaciones diferenciales. Las condiciones iniciales cambian la escala o la trayectoria particular, pero la estabilidad depende principalmente de los coeficientes del sistema.
 
 Por eso, dos sistemas pueden estar acoplados y aun así comportarse de forma muy distinta: algunos se estabilizan, otros oscilan y otros crecen sin límite.
+
+---
+
+# Punto 5: Modelo depredador-presa de Lotka-Volterra
+
+## Planteo del modelo
+
+El modelo de Lotka-Volterra describe la interacción entre dos poblaciones: presas y depredadores.
+
+```text
+dx/dt = alpha*x - beta*x*y
+dy/dt = delta*x*y - gamma*y
+```
+
+Donde:
+
+- `x(t)` representa la población de presas.
+- `y(t)` representa la población de depredadores.
+- `alpha*x` representa el crecimiento natural de las presas, igual que Malthus.
+- `-beta*x*y` representa la muerte de presas por encuentro con depredadores.
+- `delta*x*y` representa el crecimiento de depredadores gracias al alimento.
+- `-gamma*y` representa la muerte natural de depredadores, como un decaimiento.
+
+El término `x*y` conecta ambas poblaciones. Es un producto porque para que haya encuentro hacen falta presas y depredadores al mismo tiempo.
+
+Este término vuelve al sistema no lineal. Por eso no se resuelve con una fórmula cerrada simple como en los puntos 1 a 3, sino mediante simulación numérica.
+
+---
+
+## Diagrama en bloques en Xcos
+
+El punto se resolvió principalmente en Xcos, usando un integrador para cada variable.
+
+La salida del primer integrador representa `x(t)` y la salida del segundo integrador representa `y(t)`. Las ganancias y sumadores construyen las derivadas `dx/dt` y `dy/dt`.
+
+El producto `x*y` se calcula una sola vez y se reparte hacia las dos ecuaciones: aparece con signo negativo en la ecuación de las presas y con signo positivo en la ecuación de los depredadores.
+
+En Xcos se usaron los nombres `a`, `b`, `d` y `g` para representar `alpha`, `beta`, `delta` y `gamma`, porque `beta` y `gamma` son nombres propios de funciones de Scilab.
+
+| Bloque | Función |
+|---|---|
+| `INTEGRAL_m` | Integra cada derivada para obtener `x(t)` e `y(t)`. |
+| `PRODUCT` | Calcula el producto `x*y`. |
+| `GAINBLK` | Multiplica por los parámetros del modelo. |
+| `BIGSOM_f` | Suma los términos de cada derivada. |
+| `CMSCOPE` | Muestra las curvas temporales. |
+| `CSCOPXY` | Muestra el plano de fases `y` contra `x`. |
+| `CLOCK_c` | Define el paso de muestreo de los gráficos. |
+
+---
+
+## Caso base
+
+Los parámetros usados fueron:
+
+| Parámetro | Valor |
+|---|---:|
+| `alpha` | `1` |
+| `beta` | `0.1` |
+| `delta` | `0.075` |
+| `gamma` | `1.5` |
+| `x(0)` | `10` |
+| `y(0)` | `5` |
+| tiempo final | `30` |
+| paso del reloj | `0.01` |
+
+![Caso base Xcos Lotka-Volterra](imagenes_informe/p5_caso_base_xcos.png)
+
+En la captura se ve el diagrama en bloques, el gráfico temporal y el plano de fases. En el gráfico temporal, la curva superior corresponde a `x(t)` y la inferior a `y(t)`. La etiqueta `y` del eje vertical es genérica de Xcos.
+
+El comportamiento observado es cíclico. Las presas aumentan primero; después aumentan los depredadores porque tienen alimento. Luego bajan las presas por la depredación, y finalmente bajan los depredadores porque queda menos alimento. Cuando los depredadores bajan, las presas vuelven a recuperarse y el ciclo se repite.
+
+En el plano de fases se observa una curva cerrada. Eso significa que el sistema vuelve al mismo estado y repite el ciclo.
+
+---
+
+## Equilibrio
+
+Para encontrar el equilibrio se igualan las derivadas a cero.
+
+```text
+dx/dt = x(alpha - beta*y) = 0
+dy/dt = y(delta*x - gamma) = 0
+```
+
+El equilibrio no trivial queda:
+
+```text
+x* = gamma/delta
+y* = alpha/beta
+```
+
+Con los parámetros del caso base:
+
+```text
+x* = 1.5 / 0.075 = 20
+y* = 1 / 0.1 = 10
+```
+
+Entonces el ciclo gira alrededor del punto `(20, 10)`. También existe el equilibrio trivial `(0, 0)`.
+
+Este equilibrio cumple un papel parecido a `Tamb` en Newton: es un estado en el que el sistema no cambia.
+
+---
+
+## Validación con Python
+
+La resolución principal fue el diagrama de Xcos. Python se usó solo para validar el resultado con `solve_ivp`, usando los mismos parámetros y condiciones iniciales.
+
+![Validación Python Lotka-Volterra](imagenes_informe/p5_validacion_python_base.png)
+
+La validación reproduce el mismo comportamiento que Xcos: las poblaciones oscilan y el plano de fases forma una curva cerrada alrededor del equilibrio `(20, 10)`.
+
+Como no hay una solución analítica simple para comparar, la validación se hizo comparando dos herramientas distintas. Si Xcos y Python muestran el mismo comportamiento, el diagrama está correctamente armado.
+
+Valores calculados con Python para el caso base:
+
+| Magnitud | Valor aproximado |
+|---|---:|
+| `x` mínimo | `7.93` |
+| `x` máximo | `40.60` |
+| `y` mínimo | `3.09` |
+| `y` máximo | `23.28` |
+| período aproximado | `5.48` |
+
+---
+
+## Casos especiales
+
+### Caso 1: arrancar en el equilibrio
+
+Condiciones:
+
+```text
+x(0) = 20
+y(0) = 10
+```
+
+![Lotka-Volterra caso 1](imagenes_informe/p5_caso1.png)
+
+Observado en Xcos: `x` queda constante en `20` e `y` queda constante en `10` durante toda la simulación.
+
+El gráfico XY de Xcos queda vacío porque el scope dibuja líneas uniendo puntos consecutivos. Como el sistema no se mueve, la línea tiene largo cero.
+
+Este caso corresponde al punto de equilibrio. Las dos derivadas valen `0` y nada cambia. Es equivalente a `T0 = Tamb` en Newton.
+
+---
+
+### Caso 2: arrancar cerca del equilibrio
+
+Condiciones:
+
+```text
+x(0) = 18
+y(0) = 9
+```
+
+![Lotka-Volterra caso 2](imagenes_informe/p5_caso2.png)
+
+Observado en Xcos: aparecen oscilaciones chicas alrededor de `20` y `10`. En el plano XY se ve un ciclo casi elíptico alrededor del equilibrio `(20, 10)`.
+
+El tamaño del ciclo depende de qué tan lejos del equilibrio se arranca. Cada condición inicial tiene su propio ciclo cerrado y el sistema se queda en él.
+
+Cerca del equilibrio, las oscilaciones son casi sinusoidales y más rápidas.
+
+| Medición | Valor aproximado |
+|---|---:|
+| período caso base | `5.48` |
+| período caso 2 | `5.14` |
+| período teórico para oscilaciones chicas | `5.13` |
+
+---
+
+### Caso 3: sin depredadores
+
+Condiciones:
+
+```text
+x(0) = 10
+y(0) = 0
+```
+
+![Lotka-Volterra caso 3](imagenes_informe/p5_caso3.png)
+
+Observado en Xcos: `x` crece exponencialmente hasta aproximadamente `1480` en `t = 5`, mientras `y` queda en `0`. En el plano XY se ve una línea horizontal sobre `y = 0`.
+
+Con `y = 0`, el término `x*y` desaparece y queda:
+
+```text
+dx/dt = alpha*x
+```
+
+Eso es Malthus, como en el punto 2, con `r = alpha = 1`.
+
+Python verifica:
+
+```text
+x(5) = 10*e^5 = 1484.13
+```
+
+Los depredadores nunca aparecen porque `dy/dt = 0`, igual que el caso `P0 = 0` en Malthus.
+
+Este caso muestra el supuesto de alimento ilimitado para las presas. En la realidad, el crecimiento se frenaría y haría falta un modelo logístico.
+
+---
+
+### Caso 4: sin presas
+
+Condiciones:
+
+```text
+x(0) = 0
+y(0) = 5
+```
+
+![Lotka-Volterra caso 4](imagenes_informe/p5_caso4.png)
+
+Observado en Xcos: `y` decae exponencialmente de `5` a casi `0`, y `x` queda en `0`. En el plano XY se ve una línea vertical sobre `x = 0` que baja.
+
+Con `x = 0`, el término `x*y` desaparece y queda:
+
+```text
+dy/dt = -gamma*y
+```
+
+Eso es el decaimiento radioactivo del punto 3, con `lambda = gamma = 1.5`.
+
+La vida media es:
+
+```text
+ln(2)/gamma = 0.46
+```
+
+En el scope de Xcos la curva arranca un poco después de `t = 0` y se ve cerca de `4.3` en lugar de `5`. Es una particularidad de cómo dibuja el scope el primer tramo, no un error de la simulación.
+
+Los casos 3 y 4 muestran la estructura del modelo: Lotka-Volterra es Malthus para las presas más decaimiento para los depredadores, conectados por `x*y`. Si se quita una especie, desaparece el encuentro y queda el modelo simple.
+
+---
+
+### Caso 5: depredadores más frágiles
+
+Condiciones:
+
+```text
+gamma = 3
+x(0) = 10
+y(0) = 5
+```
+
+![Lotka-Volterra caso 5](imagenes_informe/p5_caso5.png)
+
+Observado en Xcos: las presas oscilan entre aproximadamente `9` y `108`, y los depredadores entre casi `0` y `46`. El período es aproximadamente `4.5`, con unos `9` ciclos en `40` unidades de tiempo.
+
+El equilibrio cambia a:
+
+```text
+x* = gamma/delta = 3/0.075 = 40
+y* = alpha/beta = 10
+```
+
+Con depredadores más frágiles hacen falta más presas para mantenerlos. Por eso el equilibrio se mueve de `(20, 10)` a `(40, 10)`.
+
+Python calcula:
+
+| Magnitud | Valor aproximado |
+|---|---:|
+| `x` mínimo | `9.19` |
+| `x` máximo | `107.61` |
+| `y` mínimo | `0.47` |
+| `y` máximo | `46.36` |
+| período aproximado | `4.51` |
+
+El mínimo de depredadores baja a menos de `1` individuo. El modelo los recupera porque trata la población como continua, pero en la realidad esa población probablemente se habría extinguido. Es el mismo supuesto que falla en Malthus con poblaciones chicas.
+
+---
+
+## Comparación Python de los casos especiales
+
+![Casos especiales Lotka-Volterra en Python](imagenes_informe/p5_casos_especiales_python.png)
+
+La figura de Python confirma los comportamientos observados en Xcos: equilibrio constante, ciclos cerrados, crecimiento tipo Malthus cuando no hay depredadores, decaimiento cuando no hay presas y desplazamiento del equilibrio cuando cambia `gamma`.
+
+| Caso | Condiciones | Comportamiento observado | Relación con otros puntos |
+|---|---|---|---|
+| 1 | `x(0)=20`, `y(0)=10` | constantes, sin ciclo | equilibrio, como `T0 = Tamb` en Newton |
+| 2 | `x(0)=18`, `y(0)=9` | ciclo chico casi elíptico, más rápido | el tamaño del ciclo depende de la condición inicial |
+| 3 | `y(0)=0` | presas crecen exponencialmente | Malthus, punto 2 |
+| 4 | `x(0)=0` | depredadores decaen exponencialmente | decaimiento radioactivo, punto 3 |
+| 5 | `gamma=3` | equilibrio en `(40, 10)`, ciclo grande y brusco | depredadores bajan a menos de `1` individuo |
+
+---
+
+## Supuestos del modelo
+
+El modelo de Lotka-Volterra supone:
+
+- Las presas tienen alimento ilimitado.
+- Los depredadores solo comen esa presa.
+- Los parámetros son constantes.
+- Las poblaciones son continuas y grandes.
+- No hay migración ni otras especies.
+
+La hipótesis de poblaciones continuas es importante. Si una población baja mucho, el modelo puede dar fracciones de individuos. En la realidad, con pocos individuos podría ocurrir extinción.
+
+---
+
+## Cierre del punto 5
+
+Lotka-Volterra combina Malthus y el decaimiento radioactivo, conectados por el término de encuentro `x*y`.
+
+Ese término hace que el sistema sea no lineal. Por eso se resuelve numéricamente con el diagrama en bloques y se valida con Python.
+
+En el caso base, las poblaciones oscilan en ciclos que se repiten. Los depredadores aparecen atrasados respecto de las presas: primero aumenta la comida y después aumenta la población depredadora.
+
+El ciclo gira alrededor de un equilibrio que depende de los parámetros:
+
+```text
+x* = gamma/delta
+y* = alpha/beta
+```
