@@ -149,12 +149,95 @@
         </figure>
       </div>
     </section>
-  </main>
+    <section id="punto3" aria-labelledby="t3">
+      <h2 id="t3"><span class="punto">3</span>Ajuste a mediciones reales</h2>
+      <p class="intro">Ahora el camino es al revés: tenemos mediciones reales y buscamos los parámetros del modelo que mejor las describen. Elegí un barrido, probá mover los controles para que la curva del modelo pase por los puntos medidos (mirando cómo baja el error) y después apretá <b>Ajuste automático</b> para ver qué encuentra la computadora.</p>
 
-  <footer>Rocío Jofre Olivero</footer>
+      <div class="selector-barrido" role="group" aria-label="Barrido medido"></div>
+      <dl class="ficha" id="p3-ficha"></dl>
+
+      <div class="p1">
+        <div class="controles">
+          <div class="param">
+            <label for="p3-R0-n"><i>R</i><sub>0</sub> [Ω]</label>
+            <input type="range" id="p3-R0-r" min="0" max="1000" step="0.1" aria-label="R0">
+            <input type="number" id="p3-R0-n" min="0" step="any">
+          </div>
+          <div class="param">
+            <label for="p3-Rinf-n"><i>R</i><sub>∞</sub> [Ω]</label>
+            <input type="range" id="p3-Rinf-r" min="0" max="1000" step="0.1" aria-label="R infinito">
+            <input type="number" id="p3-Rinf-n" min="0" step="any">
+          </div>
+          <div class="param">
+            <label for="p3-fc-n"><i>f</i><sub>c</sub> [Hz]</label>
+            <input type="range" id="p3-fc-r" min="0" max="8" step="0.01" aria-label="fc, escala logarítmica">
+            <input type="number" id="p3-fc-n" min="0" step="any">
+          </div>
+          <div class="param">
+            <label for="p3-alpha-n"><i>α</i></label>
+            <input type="range" id="p3-alpha-r" min="0.01" max="1" step="0.01" aria-label="alfa">
+            <input type="number" id="p3-alpha-n" min="0.01" max="1" step="0.01">
+          </div>
+          <p class="error" id="error-p3" role="alert"></p>
+
+          <div class="referencias">
+            <button type="button" id="p3-ajustar" class="primario">Ajuste automático</button>
+            <button type="button" id="p3-reiniciar">Volver a los valores a ojo</button>
+          </div>
+
+          <div class="error-ajuste">
+            <p class="etq-error">Error del modelo</p>
+            <p class="valor-error" id="p3-nrmse">-</p>
+            <p class="calidad" id="p3-calidad"></p>
+          </div>
+
+          <dl class="lecturas">
+            <div><dt>Error en ohmios</dt><dd id="p3-rmse">-</dd></div>
+            <div><dt><i>τ</i></dt><dd id="p3-tau">-</dd></div>
+            <div class="separada"><dt>Error con la otra mitad</dt><dd id="p3-val">-</dd></div>
+          </dl>
+          <p class="nota-lectura" id="p3-limite"></p>
+          <p class="nota-lectura">El error compara el modelo con los puntos medidos, en % del tamaño de la medición. "Error con la otra mitad" aparece al usar el ajuste automático: se ajusta con una frecuencia sí y una no, y se mide el error en las que quedaron afuera.</p>
+        </div>
+
+        <div class="graficos">
+          <figure>
+            <figcaption>Diagrama de Cole-Cole: medición (puntos) y modelo (línea)</figcaption>
+            <div class="lienzo cuadrado"><canvas id="g3-nyquist" role="img" aria-label="Diagrama de Cole-Cole con los puntos medidos y la curva del modelo"></canvas></div>
+          </figure>
+          <figure>
+            <figcaption>R y −X vs frecuencia: medición (puntos) y modelo (línea)</figcaption>
+            <div class="lienzo"><canvas id="g3-frec" role="img" aria-label="R y menos X medidas y del modelo en función de la frecuencia"></canvas></div>
+          </figure>
+        </div>
+      </div>
+
+      <h3 class="subtitulo">Ajuste automático de los tres barridos</h3>
+      <div class="tabla-envoltura">
+        <table id="p3-tabla">
+          <thead>
+            <tr>
+              <th scope="col">Barrido</th>
+              <th scope="col"><i>R</i><sub>0</sub> [Ω]</th>
+              <th scope="col"><i>R</i><sub>∞</sub> [Ω]</th>
+              <th scope="col"><i>f</i><sub>c</sub></th>
+              <th scope="col"><i>α</i></th>
+              <th scope="col">Error</th>
+              <th scope="col">Error con la otra mitad</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+      <p class="nota-lectura fuente-datos">Datos: Dell’Osa, A. H., Bravo, N. Y. y Villanueva Jousset, T. (2025). <a href="https://doi.org/10.5281/zenodo.15795175">Single dispersion EIS measurements: a compilation</a>. Zenodo. Licencia CC BY 4.0.</p>
+    </section>
+  </main>
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
   <script src="cole.js"></script>
   <script src="app.js"></script>
+  <script src="datos-punto3.js"></script>
+  <script src="ajuste.js"></script>
+  <script src="punto3.js"></script>
 </body>
 </html>
