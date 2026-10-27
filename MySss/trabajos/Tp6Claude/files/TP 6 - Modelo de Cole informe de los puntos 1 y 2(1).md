@@ -1,6 +1,4 @@
-# TP 6 - Modelo de Cole: informe de los puntos 1 y 2
-
-Oct 20, 2026 · @ro
+# TP 6 - Modelo de Cole
 
 ## Qué es el modelo de Cole
 
@@ -33,12 +31,15 @@ Entre esos dos extremos, la impedancia baja de a poco a medida que sube la frecu
 
 ## La fórmula y qué significa cada variable
 
-La fórmula que usamos es la siguiente (más adelante explicamos por qué va con signo + en el denominador):
+La fórmula que usamos es la siguiente
 
-```latex
+$$
 Z(\omega) = R_\infty + \frac{R_0 - R_\infty}{1 + (j\omega\tau)^\alpha}
-\qquad \omega = 2\pi f \qquad \tau = \frac{1}{2\pi f_c}
-```
+\qquad
+\omega = 2\pi f
+\qquad
+\tau = \frac{1}{2\pi f_c}
+$$
 
 La idea general: Z arranca en R0 a baja frecuencia y baja hasta R∞ a alta frecuencia. La fracción es "lo que falta bajar", y se va achicando a medida que crece la frecuencia.
 
@@ -47,8 +48,8 @@ La idea general: Z arranca en R0 a baja frecuencia y baja hasta R∞ a alta frec
 - **f (frecuencia, en Hz):** la variable que movemos en la simulación. Es como la perilla del generador de olas del parque: olas lentas o rápidas.
 - **ω (frecuencia angular):** es la misma frecuencia expresada en radianes por segundo, ω = 2π·f. No aporta información nueva, es solo la unidad que usa la fórmula.
 - **Z(ω) (impedancia):** lo que calcula el modelo. Es "cuánto le cuesta a la corriente atravesar el tejido". Ese costo tiene dos componentes distintos, por eso se escribe con dos números: Z = R + jX. La j solo sirve para separarlos y que no se mezclen en la cuenta.
-  - **R (resistencia):** el freno de siempre. La corriente choca contra el líquido, pierde energía y esa energía se va como calor. Es como caminar por un pasillo lleno de gente: cuesta avanzar, te cansás, y ese esfuerzo no vuelve.
-  - **X (reactancia):** otro tipo de freno. Las membranas se llenan de carga, se resisten un poco y después la devuelven: la energía no se pierde, se guarda y se devuelve. Es como empujar un resorte: hace fuerza en contra, pero cuando lo soltás te devuelve el empujón. Por eso la corriente y la tensión quedan "desfasadas": una va un poco atrasada respecto de la otra.
+  - **R (resistencia):** el freno de siempre. La corriente choca contra el líquido, pierde energía y esa energía se va como calor. Es como caminar por un pasillo lleno de gente: cuesta avanzar y ese esfuerzo no se recupera.
+  - **X (reactancia):** otro tipo de freno. Las membranas se llenan de carga, se resisten un poco y después la devuelven: la energía no se pierde, se guarda y se devuelve. Es como empujar un resorte: hace fuerza en contra y, al soltarlo, devuelve el empujón. Por eso la corriente y la tensión quedan "desfasadas": una va un poco atrasada respecto de la otra.
   - **Por qué X sale negativa:** por convención, cuando el que guarda la energía es un capacitor (como las membranas), X tiene signo negativo; si fuera una bobina, sería positivo. El signo dice de qué tipo es el freno, no que sea menos freno.
   - **Por qué se grafica −X:** como en un tejido X siempre es negativa, el arco quedaría dibujado para abajo. Con el menos adelante, el arco queda arriba del eje y se lee más cómodo. Es solo una cuestión de presentación.
 
@@ -61,7 +62,7 @@ Para entender R0 y R∞ sirve imaginar una ciudad que la gente tiene que cruzar 
 - **Por qué R∞ siempre es menor que R0:** cuantos más caminos hay, menos le cuesta a la corriente pasar. Es como un peaje: con una sola cabina abierta se forma más fila que con todas abiertas.
 - **R0 − R∞:** cuánto aportan las membranas. Si las membranas desaparecieran, R0 y R∞ serían iguales y no habría curva. En el músculo longitudinal: 385 − 70 = 315 Ω.
 
-**Ojo con una confusión común.** Parece lógico pensar que R0 son los edificios y R∞ las calles, pero no es así. R0 y R∞ no son lugares de la ciudad: son **dos situaciones distintas** de la misma ciudad, según si las puertas están cerradas o abiertas.
+**Una confusión común.** Parece lógico pensar que R0 son los edificios y R∞ las calles, pero no es así. R0 y R∞ no son lugares de la ciudad: son **dos situaciones distintas** de la misma ciudad, según si las puertas están cerradas o abiertas.
 
 | Qué mide | Situación | Símbolo |
 | --- | --- | --- |
@@ -73,11 +74,13 @@ Una forma fácil de acordarse: la corriente nunca puede usar los edificios sin u
 
 **Cómo se calcula la resistencia de adentro (Ri).** Sabemos dos cosas: el camino de afuera solo cuesta R0 = 385 Ω, y los dos caminos juntos cuestan R∞ = 70 Ω. Con eso se puede despejar cuánto tiene que costar el camino de adentro para que, junto con el de afuera, el total dé 70:
 
-```latex
-R_i = \frac{R_0 \cdot R_\infty}{R_0 - R_\infty} = \frac{385 \cdot 70}{315} \approx 85{,}6\ \Omega
-```
+$$
+R_i = \frac{R_0 \cdot R_\infty}{R_0 - R_\infty}
+= \frac{385 \cdot 70}{315}
+\approx 85{,}6\ \Omega
+$$
 
-Es como vaciar una pileta: si con una canilla tardás mucho y abriendo una segunda tardás mucho menos, podés calcular qué tan rápida es la segunda canilla sola aunque nunca la hayas abierto sola.
+Es como vaciar una pileta: si con una canilla se tarda mucho y abriendo una segunda se tarda mucho menos, se puede calcular qué tan rápida es la segunda canilla sola, aunque nunca se haya abierto sola.
 
 El resultado dice que el líquido de adentro (85,6 Ω) conduce mucho mejor que el de afuera (385 Ω), pero a baja frecuencia la corriente no lo puede usar porque las membranas la bloquean. Los equipos de bioimpedancia aprovechan esto para estimar cuánta agua hay fuera de las células y cuánta en total.
 
@@ -104,7 +107,7 @@ La página muestra Re y Ri debajo de las lecturas del simulador del punto 1. No 
 - **α = 1 (modelo de Debye):** el coro son robots. Todos cortan en el mismo instante. En el diagrama de Cole-Cole, esto da un semicírculo perfecto.
 - **α menor que 1 (tejido real):** el coro son personas. Algunos cortan un poco antes, otros un poco después, y el sonido se apaga de a poco. En el tejido pasa lo mismo: hay células grandes, chicas, alargadas, más o menos juntas, y cada grupo responde a su propio ritmo. La transición se "estira" en un rango más amplio de frecuencias y el arco se aplasta.
 
-Cuanto más chico es α, más "desparejo" es el tejido y más achatado queda el arco. Ojo: en este TP α es el exponente directo. En otros textos (incluida la guía de referencia) aparece como exponente 1 − α y entonces se lee al revés. Lo aclaramos al final.
+Cuanto más chico es α, más "desparejo" es el tejido y más achatado queda el arco. Importante: en este TP α es el exponente directo. En otros textos (incluida la guía de referencia) aparece como exponente 1 − α y entonces se lee al revés. Lo aclaramos al final.
 
 ### Por qué α no puede ser menor que 0
 
@@ -115,7 +118,7 @@ Si igual metemos un α negativo en la fórmula, la cuenta da resultados que no t
 - **La resistencia sube con la frecuencia en vez de bajar.** En la ciudad, sería como si al abrir las puertas de los edificios fuera más difícil cruzar. Con más caminos disponibles, la corriente siempre pasa más fácil, nunca más difícil.
 - **La reactancia cambia de signo.** El tejido dejaría de comportarse como un capacitor (que guarda carga en las membranas) y pasaría a comportarse como una bobina, que es un componente que las células no tienen.
 
-Otra forma de verlo: α·90° es cuánto se "atrasa" la corriente por culpa de las membranas, como el resorte que tarda en devolver el empujón. Ese atraso va de 0° (sin membranas, solo resistencia) a 90° (membranas perfectas). Un α negativo sería un resorte que te devuelve el empujón **antes** de que lo empujes, y eso no pasa.
+Otra forma de verlo: α·90° es cuánto se "atrasa" la corriente por culpa de las membranas, como el resorte que tarda en devolver el empujón. Ese atraso va de 0° (sin membranas, solo resistencia) a 90° (membranas perfectas). Un α negativo sería un resorte que devuelve el empujón **antes** de recibirlo, algo que no ocurre.
 
 En la página, si se carga un α negativo, no se grafica y aparece un aviso.
 
@@ -150,23 +153,28 @@ En el simulador del punto 1 se pueden mover R0, R∞, fc y α con controles desl
 - **Diagrama de Cole-Cole:** −X en el eje vertical y R en el horizontal. Cada punto de la curva es una frecuencia. Va de derecha (R0, baja frecuencia) a izquierda (R∞, alta frecuencia).
 - **R y −X en función de la frecuencia:** R baja como un escalón suave; −X forma una "loma" con el máximo en fc.
 
-Además muestra τ y el valor de Z en fc (resistencia, reactancia, módulo y fase).
+Además muestra:
+
+- **Lecturas:** τ, el valor de Z en fc (resistencia, reactancia, módulo y fase), y Re y Ri, las resistencias de afuera y de adentro de las células calculadas a partir de R0 y R∞.
+- **Curvas de referencia:** el botón "Fijar curva como referencia" guarda la curva actual (hasta cuatro). Queda dibujada con una línea más fina, y al mover un parámetro se ve la curva nueva encima de la anterior. Sirve para comparar el "antes y después" de cambiar un solo parámetro, que es la forma de estudiar qué hace cada uno (análisis de sensibilidad). "Borrar referencias" las quita.
+
+Los cuatro parámetros se mueven de forma independiente: cambiar uno no cambia los otros. Así, cualquier cambio en los gráficos se debe al parámetro que se tocó. Lo único que la página controla es que R0 sea mayor que R∞; si no, muestra un aviso en lugar de graficar.
 
 ### Cómo comprobamos que el modelo está bien
 
 - **Límites de la resistencia:** con frecuencias muy bajas la resistencia se acerca a R0, y con frecuencias muy altas se acerca a R∞. Con los valores del músculo longitudinal, a 0,001 Hz da 382,4 Ω (R0 = 385) y a 10^15 Hz da 70,4 Ω (R∞ = 70).
 - **Límites de la reactancia:** la reactancia hace algo distinto: no va de un valor a otro, sino que arranca en cero, sube y vuelve a cero. Con el músculo longitudinal, −X vale 1,15 Ω a 0,001 Hz y 0,20 Ω a 10^15 Hz, prácticamente cero. El máximo está en el medio, en fc = 37 kHz, donde vale 33,9 Ω.
-  - **Corriente muy lenta:** empujás la puerta de goma tan despacio que se estira hasta el tope y se queda ahí, cerrando el paso. No hay ida y vuelta, así que no hay efecto resorte: la corriente rodea por las calles y solo queda resistencia común (R0).
+  - **Corriente muy lenta:** la puerta de goma se empuja tan despacio que se estira hasta el tope y se queda ahí, cerrando el paso. No hay ida y vuelta, así que no hay efecto resorte: la corriente rodea por las calles y solo queda resistencia común (R0).
   - **Corriente rapidísima:** la puerta vibra tan rápido y tan poquito que es como si estuviera abierta. Tampoco llega a hacer de resorte: solo queda resistencia común (R∞).
   - **En el medio (cerca de fc):** el ritmo es justo para que la puerta tenga tiempo de estirarse y devolver el empujón en cada ida y vuelta. Ahí el efecto resorte es máximo.
-  - **La hamaca:** es como empujar a alguien en una hamaca. Si empujás una vez y esperás un minuto, o si das empujoncitos desesperados muy rápido, la hamaca casi no responde; el efecto se nota cuando empujás a un ritmo parecido al suyo. Ojo: la hamaca tiene resonancia (si empujás justo a su ritmo se dispara cada vez más) y las membranas no. Acá el efecto solo llega a un máximo y baja, así que la analogía sirve para la idea del "ritmo justo" y nada más.
+  - **La hamaca:** es como empujar a alguien en una hamaca. Si se empuja una vez y se espera un minuto, o si se dan empujones muy rápidos y cortos, la hamaca casi no responde; el efecto se nota cuando se empuja a un ritmo parecido al suyo. Hay una diferencia importante: la hamaca tiene resonancia (si se empuja justo a su ritmo, se mueve cada vez más) y las membranas no. Acá el efecto solo llega a un máximo y baja, así que la analogía sirve para la idea del "ritmo justo" y nada más.
   - **En los gráficos:** en el Cole-Cole son las dos puntas del arco, donde toca el eje horizontal (−X = 0), y el punto más alto es fc. En el gráfico de frecuencia es la loma punteada, que nace en cero, sube hasta fc y vuelve a cero.
 - **Caso Debye (α = 1): una prueba con resultado conocido.** La idea es probar el código en un caso donde sabemos la respuesta sin usar el programa, solo con geometría. Si el código da lo mismo, está bien.
   - **Qué sabemos de antemano:** con α = 1 el arco es un semicírculo perfecto. Sus dos puntas están sobre el eje en R∞ = 70 Ω y R0 = 385 Ω. El centro está justo en el medio de las dos puntas: (385 + 70)/2 = 227,5 Ω. El radio es la mitad del ancho: (385 − 70)/2 = 157,5 Ω. Y el punto más alto de un semicírculo está justo arriba del centro, a una altura igual al radio.
   - **Qué dice el modelo:** en fc, el punto cae exactamente en ese punto más alto. Entonces, antes de correr nada, sabemos que en fc tiene que dar R = 227,5 Ω y −X = 157,5 Ω.
   - **Qué valores setear en la página:** convención "α (como el enunciado)", R0 = 385 Ω, R∞ = 70 Ω, fc = 37 kHz y α = 1. La forma más rápida es cargar "Músculo long." y cambiar solo α a 1.
   - **Qué hay que ver:** en las lecturas, Z(fc) = 227.5 − j157.5 Ω, |Z(fc)| = 276,7 Ω y fase = −34,70°. En el Cole-Cole, un semicírculo con el punto naranja justo en la cima. En el gráfico de frecuencia, la curva de R cruza los 227,5 Ω en 37 kHz y la loma de −X tiene su pico de 157,5 Ω en esa misma frecuencia.
-  - **Un detalle para probar:** cambiá fc a 10 kHz o a 300 kHz. Las lecturas de Z(fc) no cambian, porque fc solo corre la curva en frecuencia: el punto de fc siempre queda en la cima.
+  - **Un detalle para probar:** si se cambia fc a 10 kHz o a 300 kHz, las lecturas de Z(fc) no cambian, porque fc solo corre la curva en frecuencia: el punto de fc siempre queda en la cima.
 - **Punto en fc para cualquier α:** haciendo la cuenta a mano sale que en fc la resistencia siempre es el promedio (R0 + R∞)/2, y la reactancia vale −X = (R0 − R∞)/2 · tan(α·45°). Para el músculo longitudinal (α = 0,27) da 33,9 Ω, igual que la simulación.
 
 ## Punto 2: los cinco tejidos de la Tabla 1
@@ -191,6 +199,82 @@ Valores calculados con la página, usando α como exponente tal como dice el enu
 - **fc corre la curva en frecuencia.** El bazo tiene la fc más alta (373 kHz), así que en los gráficos de frecuencia su "loma" de −X aparece más a la derecha que las demás. En el diagrama de Cole-Cole eso no se nota, porque ese gráfico no muestra la frecuencia.
 - **En fc, R siempre queda en el promedio.** Por ejemplo, el hígado en 72 kHz tiene R = (540 + 100)/2 = 320 Ω. Lo que cambia entre tejidos es cuánto sube −X en ese punto, y eso depende de α.
 
+## Punto 3: encontrar los parámetros a partir de mediciones reales
+
+### Qué pide este punto
+
+En los puntos 1 y 2 hicimos el camino "de ida": teníamos los parámetros (R0, R∞, fc y α) y el modelo nos daba la curva. El punto 3 es el camino **de vuelta**: tenemos mediciones reales de impedancia y hay que encontrar qué parámetros hacen que la curva del modelo se parezca lo más posible a esas mediciones. Eso se llama **ajuste de curvas**.
+
+Es como lo que hacíamos con los controles del simulador, pero al revés: en vez de mover los parámetros para ver qué curva sale, los movemos hasta que la curva del modelo quede "pegada" a los puntos medidos. Hacerlo a mano sería muy lento, así que lo hace la computadora.
+
+### De dónde salen los datos
+
+La consigna indica una base de datos pública armada por Dell'Osa, Bravo y Villanueva Jousset, publicada en Zenodo (el enunciado dice 2024, pero el registro publicado es de 2025). Tiene 1457 mediciones. Cada medición es un **barrido**: el equipo mide la misma muestra en muchas frecuencias distintas y guarda la resistencia (R) y la reactancia (X) en cada una. O sea, cada barrido es una curva completa, como las que dibuja nuestra página.
+
+Elegimos tres barridos de tipos de muestra bien distintos, para ver si el mismo modelo sirve en todos:
+
+| Barrido | Tipo de muestra | Frecuencias medidas | Rango |
+| --- | --- | --- | --- |
+| ID 001 | Humana | 256 | 3 kHz a 1 MHz |
+| ID 1233 | Vegetal | 100 | 400 Hz a 1 MHz |
+| ID 1311 | Fantoma de agar | 50 | 1 Hz a 65 kHz |
+
+Un **fantoma** es una muestra artificial que imita a un tejido, en este caso un gel de agar. Se usa para probar equipos y métodos sin necesitar tejido real.
+
+**Cómo elegimos los barridos (y por qué así).** Antes de ajustar nada, fijamos reglas para decidir qué barridos servían: que tuvieran suficientes frecuencias, que no tuvieran datos rotos, que la reactancia fuera mayormente negativa (comportamiento de capacitor, como un tejido) y que se viera la "loma" de −X con puntos de los dos lados. De los que cumplían, tomamos el primero de cada tipo. Las reglas se fijaron **antes** de ajustar para que la elección no dependiera del resultado: si se eligiera después de ajustar, se podrían conservar solo los que salen bien y el análisis no sería objetivo.
+
+**Un detalle con las unidades.** En el barrido humano, las frecuencias guardadas iban de 19.377 a 6.283.200, pero la documentación decía que la medición era de 3 kHz a 1 MHz. Dividiendo por 2π (el paso de ω a f) los números coinciden, así que se interpretó que estaban guardadas como ω y no como f. Es una deducción, no algo que diga la base de datos.
+
+### Cómo se hace el ajuste
+
+Se hizo en Python, con la función `least_squares` de la librería SciPy. La idea, en simple:
+
+1. **Medir cuánto se equivoca el modelo.** Para cada frecuencia, se compara el valor medido con el que da el modelo, tanto en R como en X. Esa diferencia es el error en ese punto.
+2. **Juntar todos los errores en un solo número.** Cada error se eleva al cuadrado y se suman todos. Se elevan al cuadrado para que los errores para arriba y para abajo no se cancelen entre sí, y para que un error grande pese más que varios chiquitos. Por eso el método se llama **mínimos cuadrados**.
+3. **Buscar los parámetros que hacen ese número lo más chico posible.** La computadora va probando combinaciones de R0, R∞, fc y α, y se mueve siempre hacia donde el error baja.
+
+Algunas reglas que se le pusieron al programa:
+
+- **Valores con sentido físico:** R0 mayor que R∞, las dos positivas, y α entre 0,01 y 1. Es lo mismo que explicamos en las aclaraciones: así el programa no puede devolver un tejido "imposible".
+- **Varios puntos de partida:** se arrancó la búsqueda desde 15 combinaciones distintas y se quedó con la mejor. Es como buscar el punto más bajo de un terreno con niebla: si se parte desde un solo lugar, se puede quedar en un pozo chico sin ver que más allá hay uno más profundo.
+- **Una prueba extra:** se repitió el ajuste usando solo la mitad de las frecuencias (una sí, una no) y se comprobó con la otra mitad. Es como estudiar con la mitad de los ejercicios y rendir con la otra mitad: si el resultado es igual de bueno, el modelo no se "aprendió de memoria" los puntos usados.
+
+### El ajuste en la página web
+
+El mismo ajuste también está programado en la página (en JavaScript, archivo `ajuste.js`), con el mismo método, las mismas reglas y los mismos 15 puntos de partida. Da exactamente los mismos resultados que el notebook en Python, lo que sirve como control: dos programas distintos llegan a los mismos números.
+
+En la sección del punto 3 se puede:
+
+1. **Elegir un barrido** (humano, vegetal o fantoma) y ver sus puntos medidos en el diagrama de Cole-Cole y en el gráfico de frecuencia.
+2. **Ajustar a mano:** mover R0, R∞, fc y α para intentar que la línea del modelo pase por los puntos. El error se actualiza en vivo, así se ve que "ajustar" es justamente buscar los valores que lo hacen más chico.
+3. **Apretar "Ajuste automático"** y comparar lo que encontró la computadora con lo que habíamos logrado a mano. También aparece el error de la prueba con la otra mitad de los puntos.
+
+Al final de la sección hay una tabla con el ajuste automático de los tres barridos.
+
+### Resultados
+
+| Barrido | R0 \[Ω\] | R∞ \[Ω\] | fc | α | Error (NRMSE) |
+| --- | --- | --- | --- | --- | --- |
+| Humana | 211,9 | 125,0 | 45,0 kHz | 0,56 | 1,4 % |
+| Vegetal | 3766,1 | 180,5 | 5,47 kHz | 1,00 (en el límite) | 32,8 % |
+| Fantoma de agar | 148,6 | 67,3 | 16,6 Hz | 0,68 | 3,9 % |
+
+El **NRMSE** dice, en porcentaje, cuánto se equivoca el modelo en promedio comparado con el tamaño de lo que se midió. Un 1,4 % quiere decir que la curva del modelo queda casi encima de los puntos medidos; un 33 % quiere decir que no se parecen.
+
+**Humana: ajusta muy bien.** Con un error de 1,4 %, el modelo describe bien cómo baja la resistencia y la loma de la reactancia. Su fc (45 kHz) está en el mismo rango que los tejidos de la Tabla 1, lo cual tiene sentido. Lo único que no sigue es el final del rango: en las frecuencias más altas la reactancia medida vuelve a crecer, y el modelo de Cole no puede hacer eso (su reactancia siempre vuelve a cero). Es un efecto extra que el modelo no incluye.
+
+**Fantoma de agar: ajusta bien.** Error de 3,9 %. Su transición ocurre a frecuencias muy bajas (16,6 Hz), muy por debajo de la de los tejidos. Una posible razón es que se midió con solo dos electrodos, y en ese tipo de medición se mezcla lo que aporta la muestra con lo que aporta el contacto de los electrodos. Con este ajuste no se pueden separar esas dos cosas.
+
+**Vegetal: el modelo no sirve para esta medición.** El error es de casi 33 % y α quedó en el límite de 1: el programa "quería" ir más allá de lo permitido. Además, en las frecuencias más bajas la reactancia medida es positiva, y el modelo de Cole solo puede dar reactancia negativa. Los valores de la tabla son lo mejor que encontró el programa dentro de las reglas, pero **no describen realmente a esa muestra**. Se dejó igual en el informe en vez de cambiarlo por otro barrido que saliera mejor, porque mostrar cuándo el modelo falla también es un resultado.
+
+### Qué aprendemos de este punto
+
+- **Que el programa termine no quiere decir que el resultado sea bueno.** En los tres casos el ajuste "convergió" (encontró una respuesta), pero en el vegetal esa respuesta no sirve. Hay que mirar siempre el error y comparar los gráficos.
+- **El modelo de Cole es una simplificación.** Supone una sola transición (una sola loma). Cuando la muestra tiene más de un efecto, o la medición tiene efectos de los electrodos, el modelo no alcanza.
+- **Una muestra de cada tipo no alcanza para sacar conclusiones generales.** Las diferencias entre los tres resultados pueden deberse a la muestra, pero también a que se midieron con equipos y montajes distintos.
+
+Datos: Dell'Osa, A. H., Bravo, N. Y. y Villanueva Jousset, T. (2025). [Single dispersion EIS measurements: a compilation](https://doi.org/10.5281/zenodo.15795175). Zenodo. Licencia CC BY 4.0.
+
 ## Casos que vale la pena probar en la simulación
 
 Estos son los experimentos que más muestran cómo funciona el modelo. Para cada uno, qué tocar en la página y qué debería verse.
@@ -201,7 +285,7 @@ Estos son los experimentos que más muestran cómo funciona el modelo. Para cada
 2. **El caso ideal (Debye).** Poner α = 1.
    - Se ve: un semicírculo perfecto, con el punto de fc justo arriba del centro. La reactancia máxima es (R0 − R∞)/2 = 157,5 Ω.
    - Muestra: que el modelo de Cole incluye al de Debye como caso particular.
-3. **Achatar el arco.** Bajar α de 1 a 0,1 de a poco.
+3. **Achatar el arco.** Bajar α de 1 a 0,1 de a poco. Para verlo mejor, fijar como referencia la curva con α = 1 y la de α = 0,27, y dejar α = 0,11 como curva actual: quedan las tres a la vista.
    - Se ve: el arco se aplasta; la loma de −X baja y se ensancha. Con α muy chico, Z casi no cambia con la frecuencia.
    - Muestra: que α representa qué tan parejas son las células. Menos α, transición más repartida.
 4. **Mover fc.** Cambiar fc de 10 kHz a 500 kHz sin tocar lo demás.
@@ -223,16 +307,18 @@ Estos son los experimentos que más muestran cómo funciona el modelo. Para cada
    - Se ve: la página no grafica y muestra un aviso.
    - Muestra: los límites físicos de los parámetros, explicados en la próxima sección.
 
-## Aclaraciones
+**Casos para el punto 3** (sección "Ajuste a mediciones reales"):
 
-### El signo del denominador
+1. **Ajustar a mano antes que la computadora.** Elegir el barrido humano y mover los controles tratando de que la línea pase por los puntos.
+   - Se ve: el error baja a medida que la curva se acerca a los puntos. Después, "Ajuste automático" llega a 1,4 %.
+   - Muestra: que ajustar es buscar los valores que hacen más chico el error; la computadora solo lo hace más rápido y mejor.
+2. **Un caso donde el modelo falla.** Elegir el barrido vegetal y apretar "Ajuste automático".
+   - Se ve: error de casi 33 %, α en el límite de 1 y puntos medidos con −X negativa (abajo del eje) que la línea del modelo no puede seguir.
+   - Muestra: que el programa siempre devuelve un resultado, pero hay que mirar el error y los gráficos para saber si sirve.
+3. **Una transición muy distinta.** Elegir el fantoma de agar.
+   - Se ve: la loma de −X está alrededor de 16 Hz, muy por debajo de la de los tejidos (decenas de kHz).
+   - Muestra: que el mismo modelo se puede ajustar a muestras muy distintas, pero los valores dependen también de cómo se midió (acá, con solo dos electrodos).
 
-El enunciado escribe 1 − (jωτ)^α, pero la forma estándar del modelo de Cole es con **+**, y es la que implementamos. Con el signo menos pasan dos cosas que no corresponden a un tejido:
-
-- La reactancia sale positiva, como si el tejido fuera una bobina en lugar de un capacitor.
-- Si α es menor que 1, a alta frecuencia la resistencia termina por debajo de R∞. Por ejemplo, con α = 0,8 y una frecuencia 10 veces mayor que fc, la parte que se suma a R∞ da negativa.
-
-Con α = 1 las dos versiones dan el mismo arco reflejado, por eso es fácil que se escape el error.
 
 ### Dos formas de escribir α
 
@@ -243,7 +329,7 @@ Hay dos convenciones y conviene no mezclarlas:
 | Este TP | α | α = 1 | α más chico |
 | Cole y Cole (1941) y la guía de referencia | 1 − α | α = 0 | α más grande |
 
-No cambia el modelo, solo cómo se nombra el número. La página permite elegir cualquiera de las dos. Con la del TP, los α de la Tabla 1 dan arcos muy achatados; si la tabla estuviera pensada en la otra convención, los arcos quedan con la forma típica de tejidos. Es una duda para consultar con la cátedra.
+No cambia el modelo, solo cómo se nombra el número. En este trabajo usamos los valores de α de la Tabla 1 tal como indica el enunciado, es decir, como exponente de la fórmula. Observamos que, con la otra convención, el exponente de los tejidos de la tabla quedaría entre 0,41 y 0,76, un rango más parecido al obtenido con mediciones reales en el punto 3 (0,56 para la muestra humana y 0,68 para el fantoma). Por eso la página permite ver ambas lecturas con un selector.
 
 ### Por qué ningún parámetro puede ser negativo
 
@@ -265,3 +351,5 @@ Si al medir un tejido real un ajuste devolviera α fuera de ese rango, lo más p
 - Artículo de 2023 sobre [estimación de parámetros del modelo de Cole en hardware embebido](https://dx.doi.org/10.1038/s41598-023-31860-w). *Scientific Reports*. Modelo de Cole aplicado a bioimpedancia.
 - Guía de referencia del grupo: "El Modelo de Cole en Bioimpedancia" (analogías del parque acuático y del coro).
 - Enunciado del Trabajo Práctico 6, Modelos y Simulación 2026.
+- Dell'Osa, A. H., Bravo, N. Y. y Villanueva Jousset, T. (2025). [Single dispersion EIS measurements: a compilation](https://doi.org/10.5281/zenodo.15795175). Zenodo. Datos del punto 3, licencia CC BY 4.0.
+- Ayllón, D., Gil-Pita, R. y Seoane, F. (2016). [Detection and classification of measurement errors in bioimpedance spectroscopy](https://doi.org/10.1371/journal.pone.0156522). *PLoS ONE*. Origen del barrido humano usado en el punto 3.
