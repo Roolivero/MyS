@@ -1,82 +1,149 @@
 /*
- * Interfaz del punto 3: mediciones reales + ajuste del Modelo de Cole.
- * Usa BARRIDOS (datos-punto3.js), Ajuste (ajuste.js) y las utilidades de app.js.
+ * Interfaz del punto 3: ¿qué modelo describe mejor la base de datos?
+ * Usa RESUMEN_BASE (resumen-punto3.js), BARRIDOS (datos-punto3.js),
+ * Modelos (modelos.js) y las utilidades de app.js.
  */
 (() => {
-  const P3 = {
-    actual: 0,
-    // Parámetros que muestra cada barrido (empiezan "a ojo", el usuario los mueve o los ajusta)
-    params: BARRIDOS.map((b) => ({ ...Ajuste.inicial(b) })),
-    validacion: BARRIDOS.map(() => null),
-    resultados: BARRIDOS.map(() => null),
-  };
-  let gNyq, gFrec;
-
-  const barrido = () => BARRIDOS[P3.actual];
+  const COLOR = { debye: "#8c9997", cole: "#0e6e6a", cole_td: "#d9932a", hn: "#7b4fa3", cole2: "#c0462f" };
+  const ELEGIDO = "cole2";
+  const CORTO = { hum_ok: ["Humana", "sin errores"], hum_err: ["Humana", "con errores"], hum_gc: ["Humana", "G. Correa"], hum_dl: ["Humana", "De Lorenzo"], veg: "Vegetal", fan: "Fantoma" };
   const fmtNum = (v, d = 1) => v.toLocaleString("es-AR", { minimumFractionDigits: d, maximumFractionDigits: d });
+  const nombre = (id) => Modelos.POR_ID[id].nombre;
 
-  function calidad(nrmse) {
-    if (nrmse < 2) return ["muy-bueno", "Muy bueno: la curva pasa casi por encima de los puntos."];
-    if (nrmse < 5) return ["bueno", "Bueno: el modelo sigue bien la forma de la medición."];
-    if (nrmse < 10) return ["regular", "Regular: se parece, pero hay diferencias visibles."];
-    return ["malo", "No ajusta: el modelo no describe esta medición."];
+  const estado = {
+    actual: 0,
+    visibles: new Set(["cole", "cole_td", "cole2"]),
+    cache: {}, // ajustes ya calculados por barrido
+  };
+  let gNyq, gR, gX;
+
+  // ---------- Tarjetas de los modelos ----------
+  function tarjetas() {
+    $("#p3-modelos").innerHTML = Modelos.LISTA.map((m) => `
+      <article class="tarjeta-modelo${m.id === ELEGIDO ? " elegido" : ""}" style="--color:${COLOR[m.id]}">
+        <h4>${m.nombre}${m.id === ELEGIDO ? " <span class=\"etiqueta-elegido\">elegido</span>" : ""}</h4>
+        <p class="parametros">${m.k} parámetros: ${m.params.map((p) => p[0]).join(", ")}</p>
+        <p>${m.desc}</p>
+      </article>`).join("");
   }
 
-  // ---------- Controles ----------
-  function rangos() {
-    const b = barrido();
-    const fmin = Math.min(...b.f);
-    const fmax = Math.max(...b.f);
-    const rmax = Math.ceil((Math.max(...b.R) * 2) / 50) * 50;
-    $("#p3-R0-r").max = rmax;
-    $("#p3-Rinf-r").max = rmax;
-    $("#p3-fc-r").min = Math.log10(fmin / 100).toFixed(2);
-    $("#p3-fc-r").max = Math.log10(fmax * 100).toFixed(2);
+  // ---------- Resultado en la base (precalculado en Python) ----------
+  function resultadoBase() {
+    const R = RESUMEN_BASE;
+    $("#p3-veredicto-texto").innerHTML = `En la submuestra (${R.totalAjustados} barridos ajustados), <b>Cole doble</b> es el mejor modelo en el ${fmtNum(R.ganaTotal.cole2, 0)} % de los barridos y es el único que ajusta bien en todos los grupos: su error típico nunca pasa del ${fmtNum(R.peorMediana.cole2, 1)} %. El segundo, <b>Cole con retardo</b>, gana en el ${fmtNum(R.ganaTotal.cole_td, 0)} % (sobre todo en mediciones humanas), pero en los vegetales su error llega al ${fmtNum(R.peorMediana.cole_td, 0)} %.`;
+
+    const ids = Modelos.LISTA.map((m) => m.id);
+    new Chart($("#g3-gana"), {
+      type: "bar",
+      data: {
+        labels: ids.map(nombre),
+        datasets: [{ data: ids.map((id) => R.ganaTotal[id]), backgroundColor: ids.map((id) => COLOR[id]), borderRadius: 4 }],
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false, animation: false,
+        plugins: { legend: { display: false }, tooltip: { callbacks: { label: (c) => `Gana en el ${fmtNum(c.parsed.y, 1)} % de los barridos` } } },
+        scales: { y: { min: 0, max: 100, title: { display: true, text: "% de barridos donde gana" } }, x: { grid: { display: false } } },
+      },
+    });
+
+    const grupos = R.grupos.filter((g) => g.modelos);
+    new Chart($("#g3-error"), {
+      type: "bar",
+      data: {
+        labels: grupos.map((g) => CORTO[g.id] || g.nombre),
+        datasets: ids.map((id) => ({ label: nombre(id), data: grupos.map((g) => g.modelos[id].nrmse), backgroundColor: COLOR[id], borderRadius: 2 })),
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false, animation: false,
+        plugins: {
+          legend: { labels: { boxWidth: 12, boxHeight: 12 } },
+          tooltip: { callbacks: { label: (c) => `${c.dataset.label}: ${fmtNum(c.parsed.y, 2)} %` } },
+        },
+        scales: {
+          y: {
+            type: "logarithmic", min: 0.1, max: 100,
+            title: { display: true, text: "Error típico (mediana, %), escala log" },
+            ticks: { callback: (v) => ([0.1, 1, 10, 100].includes(v) ? `${v} %` : "") },
+          },
+          x: { grid: { display: false }, ticks: { maxRotation: 0, autoSkip: false, font: { size: 11 } } },
+        },
+      },
+    });
+
+    $("#p3-tabla-base tbody").innerHTML = R.grupos.map((g) => {
+      if (!g.modelos) {
+        return `<tr><td>${g.nombre}</td><td>${g.enBase} / 0</td><td colspan="4" class="excluido">Excluido: ${g.excluido}</td></tr>`;
+      }
+      const gan = ids.reduce((a, b) => (g.modelos[b].gana > g.modelos[a].gana ? b : a));
+      return `<tr>
+        <td>${g.nombre}</td>
+        <td>${g.enBase} / ${g.ajustados}</td>
+        <td><span class="punto-modelo" style="background:${COLOR[gan]}"></span>${nombre(gan)} (${fmtNum(g.modelos[gan].gana, 0)} %)</td>
+        <td>${fmtNum(g.modelos.cole.nrmse, 2)} %</td>
+        <td>${fmtNum(g.modelos.cole2.nrmse, 2)} %</td>
+        <td>${fmtNum(g.modelos.cole2.val, 2)} %</td>
+      </tr>`;
+    }).join("");
   }
 
-  function escribirControles() {
-    const p = P3.params[P3.actual];
-    $("#p3-R0-r").value = p.R0;
-    $("#p3-R0-n").value = +p.R0.toFixed(2);
-    $("#p3-Rinf-r").value = p.Rinf;
-    $("#p3-Rinf-n").value = +p.Rinf.toFixed(2);
-    $("#p3-fc-r").value = Math.log10(p.fcHz);
-    $("#p3-fc-n").value = +p.fcHz.toPrecision(5);
-    $("#p3-alpha-r").value = p.alpha;
-    $("#p3-alpha-n").value = +p.alpha.toFixed(3);
-  }
-
-  function vincularControles() {
-    const campos = [
-      ["R0", (v) => v, (v) => v],
-      ["Rinf", (v) => v, (v) => v],
-      ["fc", (v) => 10 ** v, (v) => Math.log10(v)], // la barra de fc es logarítmica
-      ["alpha", (v) => v, (v) => v],
-    ];
-    for (const [k, deBarra, aBarra] of campos) {
-      const clave = k === "fc" ? "fcHz" : k;
-      const barra = $(`#p3-${k}-r`);
-      const numero = $(`#p3-${k}-n`);
-      barra.addEventListener("input", () => {
-        const v = deBarra(+barra.value);
-        P3.params[P3.actual][clave] = v;
-        numero.value = k === "fc" ? +v.toPrecision(4) : +v.toFixed(k === "alpha" ? 2 : 1);
-        P3.validacion[P3.actual] = null;
-        actualizar();
+  // ---------- Explorador de un barrido ----------
+  function selector() {
+    const sel = $(".selector-barrido");
+    const grupos = [...new Set(BARRIDOS.map((b) => b.grupoNombre))];
+    sel.innerHTML = "";
+    for (const g of grupos) {
+      const div = document.createElement("div");
+      div.className = "grupo-barrido";
+      div.innerHTML = `<span class="etq-grupo">${g}</span>`;
+      BARRIDOS.forEach((b, i) => {
+        if (b.grupoNombre !== g) return;
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.textContent = `ID ${b.id}`;
+        btn.dataset.i = i;
+        btn.addEventListener("click", () => seleccionar(i));
+        div.appendChild(btn);
       });
-      numero.addEventListener("input", () => {
-        const v = numero.value === "" ? NaN : +numero.value;
-        P3.params[P3.actual][clave] = v;
-        if (Number.isFinite(v) && v > 0) barra.value = aBarra(v);
-        P3.validacion[P3.actual] = null;
-        actualizar();
-      });
+      sel.appendChild(div);
     }
+    $("#p3-casillas").innerHTML = Modelos.LISTA.map((m) => `
+      <label><input type="checkbox" value="${m.id}" ${estado.visibles.has(m.id) ? "checked" : ""}>
+      <span class="punto-modelo" style="background:${COLOR[m.id]}"></span>${m.nombre}</label>`).join("");
+    $("#p3-casillas").addEventListener("change", (e) => {
+      if (e.target.checked) estado.visibles.add(e.target.value);
+      else estado.visibles.delete(e.target.value);
+      dibujar();
+    });
   }
 
-  // ---------- Gráficos ----------
-  // Cole-Cole con la misma escala en los dos ejes, incluyendo puntos con −X negativa.
-  function escalaNyquist(puntos) {
+  function ficha() {
+    const b = BARRIDOS[estado.actual];
+    $("#p3-ficha").innerHTML = `
+      <div><dt>Grupo</dt><dd>${b.grupoNombre}</dd></div>
+      <div><dt>Equipo</dt><dd>${b.equipo}</dd></div>
+      <div><dt>Electrodos</dt><dd>${b.electrodos}</dd></div>
+      <div><dt>Frecuencias</dt><dd>${b.f.length}, de ${fmtHz(Math.min(...b.f))} a ${fmtHz(Math.max(...b.f))}</dd></div>
+      <div><dt>Origen</dt><dd>${b.fuente}</dd></div>
+      ${b.conversion ? `<div class="nota-ficha"><dt>Datos normalizados</dt><dd>${b.conversion}</dd></div>` : ""}`;
+    document.querySelectorAll(".selector-barrido button").forEach((btn) => btn.setAttribute("aria-pressed", +btn.dataset.i === estado.actual));
+  }
+
+  function seleccionar(i) {
+    estado.actual = i;
+    ficha();
+    const b = BARRIDOS[i];
+    if (estado.cache[b.id]) { dibujar(); return; }
+    $("#p3-estado").textContent = "Ajustando los cinco modelos…";
+    $("#p3-tabla-barrido tbody").innerHTML = "";
+    dibujar();
+    setTimeout(() => {
+      estado.cache[b.id] = Modelos.ajustarTodos(b);
+      $("#p3-estado").textContent = "";
+      if (estado.actual === i) dibujar();
+    }, 30);
+  }
+
+  function escalaNyquist(chart, puntos) {
     const xs = puntos.map((q) => q.x);
     const ys = puntos.map((q) => q.y);
     let xmin = Math.min(...xs);
@@ -86,172 +153,90 @@
     const margen = (xmax - xmin) * 0.06 || 10;
     xmin = Math.max(0, xmin - margen);
     xmax += margen;
-    const area = gNyq.chartArea;
+    const area = chart.chartArea;
     const rel = area ? area.height / area.width : 0.5;
     const alto = (ymax - ymin) * 1.12 || 10;
     if (alto > (xmax - xmin) * rel) xmax = xmin + alto / rel;
-    const s = gNyq.options.scales;
-    s.x.min = xmin;
-    s.x.max = xmax;
+    const s = chart.options.scales;
+    s.x.min = xmin; s.x.max = xmax;
     s.y.min = ymin < 0 ? ymin * 1.12 : 0;
     s.y.max = s.y.min + (xmax - xmin) * rel;
   }
 
-  function actualizar() {
-    const b = barrido();
-    const p = P3.params[P3.actual];
-    const valido = [p.R0, p.Rinf, p.fcHz, p.alpha].every(Number.isFinite) && p.Rinf > 0 && p.R0 > p.Rinf && p.fcHz > 0 && p.alpha > 0 && p.alpha <= 1;
-    $("#error-p3").textContent = valido ? "" : "Revisá los valores: R0 > R∞ > 0, fc > 0 y α entre 0 y 1.";
+  function dibujar() {
+    const b = BARRIDOS[estado.actual];
+    const ajustes = estado.cache[b.id];
+    const gris = css("--tinta-2");
+    const medN = b.f.map((f, i) => ({ x: b.R[i], y: -b.X[i], f }));
+    const punto = (label, data) => ({ ...curva(label, gris, data), showLine: false, pointRadius: 2.4, pointBackgroundColor: gris });
 
-    const medR = b.f.map((f, i) => ({ x: b.R[i], y: -b.X[i], f }));
-    const sets = [{ ...curva("Medición", css("--tinta-2"), medR), showLine: false, pointRadius: 2.6, pointBackgroundColor: css("--tinta-2") }];
-    const setsF = [
-      { ...curva("R medida", "#0e6e6a", b.f.map((f, i) => ({ x: f, y: b.R[i] }))), showLine: false, pointRadius: 2.4, pointBackgroundColor: css("--acento") },
-      { ...curva("−X medida", "#d9532a", b.f.map((f, i) => ({ x: f, y: -b.X[i] }))), showLine: false, pointRadius: 2.4, pointBackgroundColor: "#d9532a" },
-    ];
-    let puntos = [...medR];
+    const setsN = [punto("Medición", medN)];
+    const setsR = [punto("Medición", b.f.map((f, i) => ({ x: f, y: b.R[i] })))];
+    const setsX = [punto("Medición", b.f.map((f, i) => ({ x: f, y: -b.X[i] })))];
+    let todos = [...medN];
 
-    if (valido) {
-      const fmin = Math.min(...b.f);
-      const fmax = Math.max(...b.f);
-      const mod = Cole.logspace(fmin, fmax, 300).map((f) => ({ f, ...Ajuste.modelo(f, p) }));
-      const modN = mod.map((z) => ({ x: z.R, y: -z.X, f: z.f }));
-      sets.push(curva("Modelo de Cole", css("--acento"), modN));
-      if (p.fcHz >= fmin && p.fcHz <= fmax) {
-        const zc = Ajuste.modelo(p.fcHz, p);
-        sets.push(marcador("f = fc", "#d9532a", { x: zc.R, y: -zc.X, f: p.fcHz }));
+    if (ajustes) {
+      const fs = Cole.logspace(Math.min(...b.f), Math.max(...b.f), 300);
+      for (const a of ajustes) {
+        if (!estado.visibles.has(a.id)) continue;
+        const z = fs.map((f) => ({ f, ...Modelos.evaluar(a.id, f, a.p) }));
+        const n = z.map((q) => ({ x: q.re, y: -q.im, f: q.f }));
+        const ancho = a.id === ELEGIDO ? 2.8 : 1.8;
+        setsN.push({ ...curva(nombre(a.id), COLOR[a.id], n), borderWidth: ancho });
+        setsR.push({ ...curva(nombre(a.id), COLOR[a.id], z.map((q) => ({ x: q.f, y: q.re }))), borderWidth: ancho });
+        setsX.push({ ...curva(nombre(a.id), COLOR[a.id], z.map((q) => ({ x: q.f, y: -q.im }))), borderWidth: ancho });
+        todos = todos.concat(n);
       }
-      setsF.push(curva("R modelo", css("--acento"), mod.map((z) => ({ x: z.f, y: z.R }))));
-      setsF.push(curva("−X modelo", "#d9532a", mod.map((z) => ({ x: z.f, y: -z.X })), true));
-      puntos = puntos.concat(modN);
-
-      const e = Ajuste.errores(b, p);
-      const [clase, texto] = calidad(e.nrmse);
-      $("#p3-nrmse").textContent = `${fmtNum(e.nrmse, 1)} %`;
-      $("#p3-calidad").className = `calidad ${clase}`;
-      $("#p3-calidad").textContent = texto;
-      $("#p3-rmse").textContent = `${fmtNum(e.rmse, 1)} Ω`;
-      $("#p3-tau").textContent = `${(1e6 / (2 * Math.PI * p.fcHz)).toPrecision(4)} µs`;
-      const v = P3.validacion[P3.actual];
-      $("#p3-val").textContent = v ? `${fmtNum(v.nrmse, 1)} %` : "–";
-      const enLimite = p.alpha > 0.999;
-      $("#p3-limite").textContent = enLimite ? "α quedó en el límite de 1: el ajuste \"quería\" ir más allá de lo físicamente posible." : "";
+      tablaBarrido(ajustes);
     }
 
-    gNyq.data.datasets = sets;
-    escalaNyquist(puntos);
+    gNyq.data.datasets = setsN;
+    escalaNyquist(gNyq, todos);
     gNyq.update("none");
-
-    gFrec.data.datasets = setsF;
-    gFrec.options.scales.x.min = Math.min(...b.f);
-    gFrec.options.scales.x.max = Math.max(...b.f);
-    gFrec.update("none");
+    for (const [g, sets] of [[gR, setsR], [gX, setsX]]) {
+      g.data.datasets = sets;
+      g.options.scales.x.min = Math.min(...b.f);
+      g.options.scales.x.max = Math.max(...b.f);
+      g.update("none");
+    }
   }
 
-  // ---------- Ficha del barrido ----------
-  function mostrarFicha() {
-    const b = barrido();
-    $("#p3-ficha").innerHTML = `
-      <div><dt>Tipo de muestra</dt><dd>${b.tipo}</dd></div>
-      <div><dt>Equipo</dt><dd>${b.equipo}</dd></div>
-      <div><dt>Electrodos</dt><dd>${b.electrodos}</dd></div>
-      <div><dt>Frecuencias</dt><dd>${b.f.length}, de ${fmtHz(Math.min(...b.f))} a ${fmtHz(Math.max(...b.f))}</dd></div>
-      <div><dt>Origen</dt><dd>${b.fuente}</dd></div>
-      ${b.conversion ? `<div class="nota-ficha"><dt>Nota</dt><dd>${b.conversion}</dd></div>` : ""}`;
-    document.querySelectorAll(".selector-barrido button").forEach((btn, i) => btn.setAttribute("aria-pressed", i === P3.actual));
-  }
-
-  function seleccionar(i) {
-    P3.actual = i;
-    mostrarFicha();
-    rangos();
-    escribirControles();
-    actualizar();
-  }
-
-  // ---------- Ajuste automático ----------
-  function ajusteAutomatico() {
-    const btn = $("#p3-ajustar");
-    btn.textContent = "Ajustando…";
-    btn.disabled = true;
-    setTimeout(() => {
-      const b = barrido();
-      const r = Ajuste.ajustar(b);
-      P3.params[P3.actual] = { R0: r.R0, Rinf: r.Rinf, fcHz: r.fcHz, alpha: r.alpha };
-      P3.validacion[P3.actual] = Ajuste.validar(b);
-      escribirControles();
-      actualizar();
-      btn.textContent = "Ajuste automático";
-      btn.disabled = false;
-    }, 30);
-  }
-
-  // ---------- Tabla con los tres ajustes ----------
-  function tablaResultados() {
-    const cuerpo = $("#p3-tabla tbody");
-    cuerpo.innerHTML = BARRIDOS.map((b, i) => {
-      const r = P3.resultados[i];
-      if (!r) return `<tr><td>${b.tipo} (ID ${b.id})</td><td colspan="7">Calculando…</td></tr>`;
-      const [clase] = calidad(r.ajuste.nrmse);
-      return `<tr>
-        <td>${b.tipo} (ID ${b.id})</td>
-        <td>${fmtNum(r.ajuste.R0)}</td>
-        <td>${fmtNum(r.ajuste.Rinf)}</td>
-        <td>${fmtHz(r.ajuste.fcHz)}</td>
-        <td>${fmtNum(r.ajuste.alpha, 2)}${r.ajuste.enLimite ? " (límite)" : ""}</td>
-        <td><span class="calidad ${clase}">${fmtNum(r.ajuste.nrmse, 1)} %</span></td>
-        <td>${fmtNum(r.val.nrmse, 1)} %</td>
+  function tablaBarrido(ajustes) {
+    const mejor = ajustes.reduce((a, b) => (b.bic < a.bic ? b : a));
+    $("#p3-tabla-barrido tbody").innerHTML = ajustes.map((a) => {
+      const m = Modelos.POR_ID[a.id];
+      return `<tr class="${a.id === mejor.id ? "ganador" : ""}">
+        <td><span class="punto-modelo" style="background:${COLOR[a.id]}"></span>${m.nombre}</td>
+        <td>${m.k}</td>
+        <td>${fmtNum(a.nrmse, 2)} %</td>
+        <td>${fmtNum(a.bic, 0)}</td>
+        <td>${a.id === mejor.id ? "Mejor para este barrido" : ""}</td>
       </tr>`;
     }).join("");
-  }
-
-  function calcularTodos(i = 0) {
-    if (i >= BARRIDOS.length) return;
-    setTimeout(() => {
-      P3.resultados[i] = { ajuste: Ajuste.ajustar(BARRIDOS[i]), val: Ajuste.validar(BARRIDOS[i]) };
-      tablaResultados();
-      calcularTodos(i + 1);
-    }, 20);
   }
 
   // ---------- Arranque ----------
   document.addEventListener("DOMContentLoaded", () => {
     if (typeof Chart === "undefined" || typeof BARRIDOS === "undefined") return;
+    tarjetas();
+    resultadoBase();
+
     gNyq = graficoNyquist("#g3-nyquist");
-    gFrec = graficoFrecuencia("#g3-frec", "Ω");
-    gFrec.options.scales.y.min = undefined;
     gNyq.options.scales.y.min = undefined;
-    // Sin etiquetas en los bordes (los límites de los ejes no son números redondos)
     gNyq.options.scales.x.ticks = { includeBounds: false };
     gNyq.options.scales.y.ticks = { includeBounds: false };
+    gR = graficoFrecuencia("#g3-r", "R [Ω]");
+    gX = graficoFrecuencia("#g3-x", "−X [Ω]");
+    gR.options.scales.y.min = undefined;
+    gX.options.scales.y.min = undefined;
 
-    const sel = $(".selector-barrido");
-    BARRIDOS.forEach((b, i) => {
-      const btn = document.createElement("button");
-      btn.type = "button";
-      btn.innerHTML = `${b.tipo}<small>ID ${b.id}</small>`;
-      btn.addEventListener("click", () => seleccionar(i));
-      sel.appendChild(btn);
-    });
-
-    vincularControles();
-    $("#p3-ajustar").addEventListener("click", ajusteAutomatico);
-    $("#p3-reiniciar").addEventListener("click", () => {
-      P3.params[P3.actual] = { ...Ajuste.inicial(barrido()) };
-      P3.validacion[P3.actual] = null;
-      escribirControles();
-      actualizar();
-    });
-
-    seleccionar(0);
-    requestAnimationFrame(actualizar);
-    tablaResultados();
-    calcularTodos();
+    selector();
+    seleccionar(BARRIDOS.findIndex((b) => b.id === "1246"));
 
     let espera;
     window.addEventListener("resize", () => {
       clearTimeout(espera);
-      espera = setTimeout(actualizar, 150);
+      espera = setTimeout(dibujar, 150);
     });
   });
 })();
