@@ -18,11 +18,16 @@ npx serve .
 - `cole.js`: el modelo (punto 1). Función `impedancia(f, p)` y `simular(p, frecuencias)`.
   No depende de la página.
 - `app.js`: interfaz, tabla de tejidos (punto 2), gráficos y exportación CSV.
-- `datos-punto3.js`: 17 barridos de ejemplo del punto 3 (el primero, el del medio y el último
-  de cada grupo de la base), extraídos de `registros_EIS.mat` con Python. Datos normalizados:
-  f en Hz, R y X en ohmios, X negativa = capacitiva.
-- `resumen-punto3.js`: resultado de la comparación de modelos en una submuestra de la base,
-  calculado en Python.
+- `barridos/`: todos los barridos de la base (salvo los animales), un archivo por grupo, con los
+  parámetros ya ajustados de los cinco modelos. La página carga cada grupo cuando se elige.
+  `barridos/indice.js` lista los grupos y sus ID. Datos normalizados: f en Hz, R y X en ohmios,
+  X negativa = capacitiva.
+- `resumen-punto3.js`: resultado de la comparación de modelos en toda la base.
+
+`barridos/` y `resumen-punto3.js` se generan con `../herramientas/calcular-base.js`, que lee
+`../datos/registros_EIS.json` y usa este mismo `modelos.js`. Desde la carpeta `Tp6`:
+
+    node herramientas/calcular-base.js
 - `modelos.js`: los cinco modelos candidatos (Debye, Cole, Cole con retardo, Havriliak-Negami y
   Cole doble), el ajuste por mínimos cuadrados (Levenberg-Marquardt), el BIC y el método de
   Ayllon, que da los valores de Cole sin iterar y sirve de punto de partida del ajuste.

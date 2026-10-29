@@ -199,81 +199,173 @@ Valores calculados con la página, usando α como exponente tal como dice el enu
 - **fc corre la curva en frecuencia.** El bazo tiene la fc más alta (373 kHz), así que en los gráficos de frecuencia su "loma" de −X aparece más a la derecha que las demás. En el diagrama de Cole-Cole eso no se nota, porque ese gráfico no muestra la frecuencia.
 - **En fc, R siempre queda en el promedio.** Por ejemplo, el hígado en 72 kHz tiene R = (540 + 100)/2 = 320 Ω. Lo que cambia entre tejidos es cuánto sube −X en ese punto, y eso depende de α.
 
-## Punto 3: encontrar los parámetros a partir de mediciones reales
+## Punto 3: qué modelo describe mejor las mediciones reales
 
 ### Qué pide este punto
 
-En los puntos 1 y 2 hicimos el camino "de ida": teníamos los parámetros (R0, R∞, fc y α) y el modelo nos daba la curva. El punto 3 es el camino **de vuelta**: tenemos mediciones reales de impedancia y hay que encontrar qué parámetros hacen que la curva del modelo se parezca lo más posible a esas mediciones. Eso se llama **ajuste de curvas**.
+En los puntos 1 y 2 hicimos el camino "de ida": teníamos los parámetros (R0, R∞, fc y α) y el modelo nos daba la curva. El punto 3 es el camino **de vuelta**: tenemos mediciones reales de impedancia y hay que encontrar qué curva se parece lo más posible a esas mediciones. Eso se llama **ajuste de curvas**.
 
-Es como lo que hacíamos con los controles del simulador, pero al revés: en vez de mover los parámetros para ver qué curva sale, los movemos hasta que la curva del modelo quede "pegada" a los puntos medidos. Hacerlo a mano sería muy lento, así que lo hace la computadora.
+Al principio lo encaramos dando por sentado que el modelo correcto era el de Cole, y solo buscábamos sus parámetros. La idea era otra: **no suponer el modelo de entrada**, sino probar varias fórmulas sobre el conjunto de datos y quedarse con la que mejor lo describe. Cole es una de las candidatas, pero tiene que ganarse el lugar. Además, la consigna pide los valores característicos de Cole para los datos, así que esos también los calculamos.
+
+Hay una idea que conviene tener clara desde el principio. "Un modelo para toda la base" quiere decir **una misma fórmula para todos los barridos**, pero cada barrido tiene sus propios valores de parámetros. Es como un molde de ropa: el molde es el mismo, pero cada prenda se corta a la medida de cada persona. Por eso dos barridos ajustados con el mismo modelo pueden verse muy distintos en los gráficos.
 
 ### De dónde salen los datos
 
 La consigna indica una base de datos pública armada por Dell'Osa, Bravo y Villanueva Jousset, publicada en Zenodo (el enunciado dice 2024, pero el registro publicado es de 2025). Tiene 1457 mediciones. Cada medición es un **barrido**: el equipo mide la misma muestra en muchas frecuencias distintas y guarda la resistencia (R) y la reactancia (X) en cada una. O sea, cada barrido es una curva completa, como las que dibuja nuestra página.
 
-Elegimos tres barridos de tipos de muestra bien distintos, para ver si el mismo modelo sirve en todos:
+Los barridos vienen de distintos trabajos y tipos de muestra. Los agrupamos así:
 
-| Barrido | Tipo de muestra | Frecuencias medidas | Rango |
-| --- | --- | --- | --- |
-| ID 001 | Humana | 256 | 3 kHz a 1 MHz |
-| ID 1233 | Vegetal | 100 | 400 Hz a 1 MHz |
-| ID 1311 | Fantoma de agar | 50 | 1 Hz a 65 kHz |
+| Grupo | Barridos | De dónde salen |
+| --- | --- | --- |
+| Humana (Ayllón, sin errores) | 50 | Mediciones de Ayllón et al. (2016) |
+| Humana (Ayllón, con errores) | 1180 | Las mismas mediciones con errores agregados a propósito, para estudiar cómo detectarlos |
+| Humana (González Correa) | 36 | González Correa (2018) |
+| Humana (De Lorenzo) | 2 | De Lorenzo et al. (1997) |
+| Vegetal | 28 | Mediciones de Bertemes Filho (no publicadas) |
+| Fantoma de agar | 147 | Dell'Osa et al. (2019) |
+| Animal | 14 | Mediciones de Bertemes Filho (no publicadas) |
 
 Un **fantoma** es una muestra artificial que imita a un tejido, en este caso un gel de agar. Se usa para probar equipos y métodos sin necesitar tejido real.
 
-**Cómo elegimos los barridos (y por qué así).** Antes de ajustar nada, fijamos reglas para decidir qué barridos servían: que tuvieran suficientes frecuencias, que no tuvieran datos rotos, que la reactancia fuera mayormente negativa (comportamiento de capacitor, como un tejido) y que se viera la "loma" de −X con puntos de los dos lados. De los que cumplían, tomamos el primero de cada tipo. Las reglas se fijaron **antes** de ajustar para que la elección no dependiera del resultado: si se eligiera después de ajustar, se podrían conservar solo los que salen bien y el análisis no sería objetivo.
+Usamos **todos los barridos de la base salvo los animales**: 1443 en total. Los 14 animales quedaron afuera porque tienen resistencias negativas o en cero, algo imposible para una muestra real (ver la sección "Por qué ningún parámetro puede ser negativo"). Son datos dañados.
 
-**Un detalle con las unidades.** En el barrido humano, las frecuencias guardadas iban de 19.377 a 6.283.200, pero la documentación decía que la medición era de 3 kHz a 1 MHz. Dividiendo por 2π (el paso de ω a f) los números coinciden, así que se interpretó que estaban guardadas como ω y no como f. Es una deducción, no algo que diga la base de datos.
+**Un detalle con las unidades.** No todos los grupos guardan los datos igual, así que antes de ajustar los pasamos todos a la misma forma: frecuencia en Hz, R y X en ohmios, y X negativa cuando la muestra se comporta como capacitor.
+
+- En las mediciones de Ayllón, las frecuencias guardadas iban de 19.377 a 6.283.200, pero la documentación decía que la medición era de 3 kHz a 1 MHz. Dividiendo por 2π (el paso de ω a f) los números coinciden, así que se interpretó que estaban guardadas como ω y no como f. Es una deducción, no algo que diga la base de datos.
+- En González Correa las frecuencias estaban en kHz y la reactancia con el signo cambiado; en De Lorenzo, solo la reactancia con el signo cambiado.
+
+### Los cinco modelos que probamos
+
+Probamos cinco fórmulas. Todas parten de la misma idea del punto 1 (la impedancia baja de R0 a R∞ con una "loma" de reactancia en el medio) y se diferencian en cuántas cosas pueden acomodar:
+
+| Modelo | Parámetros | Qué agrega |
+| --- | --- | --- |
+| Debye | 3 | Es Cole con α = 1: un semicírculo perfecto, como el coro de robots. |
+| Cole | 4 | El modelo del TP: una sola loma, más o menos achatada según α. |
+| Cole con retardo | 5 | Cole más un pequeño retraso de tiempo, que representa lo que aportan los cables y el equipo en las frecuencias más altas. |
+| Havriliak-Negami | 5 | Cole con un exponente más, que permite lomas "torcidas" (más empinadas de un lado que del otro). |
+| Cole doble | 7 | Dos términos de Cole sumados: dos lomas, cada una con su tamaño, su fc y su α. |
+
+**Cole doble**, en la analogía de la ciudad, sería como tener dos tipos de edificios con puertas distintas: unas se abren con corriente más lenta y otras con corriente más rápida. Cada tipo arma su propia loma. Si una de las dos lomas vale cero, Cole doble se convierte en Cole común, así que Cole es un caso particular de Cole doble.
 
 ### Cómo se hace el ajuste
 
-Se hizo en Python, con la función `least_squares` de la librería SciPy. La idea, en simple:
+La idea es la misma para los cinco modelos:
 
 1. **Medir cuánto se equivoca el modelo.** Para cada frecuencia, se compara el valor medido con el que da el modelo, tanto en R como en X. Esa diferencia es el error en ese punto.
 2. **Juntar todos los errores en un solo número.** Cada error se eleva al cuadrado y se suman todos. Se elevan al cuadrado para que los errores para arriba y para abajo no se cancelen entre sí, y para que un error grande pese más que varios chiquitos. Por eso el método se llama **mínimos cuadrados**.
-3. **Buscar los parámetros que hacen ese número lo más chico posible.** La computadora va probando combinaciones de R0, R∞, fc y α, y se mueve siempre hacia donde el error baja.
+3. **Buscar los parámetros que hacen ese número lo más chico posible.** La computadora va probando valores y se mueve siempre hacia donde el error baja. El método que usamos se llama Levenberg-Marquardt.
 
 Algunas reglas que se le pusieron al programa:
 
-- **Valores con sentido físico:** R0 mayor que R∞, las dos positivas, y α entre 0,01 y 1. Es lo mismo que explicamos en las aclaraciones: así el programa no puede devolver un tejido "imposible".
-- **Varios puntos de partida:** se arrancó la búsqueda desde 15 combinaciones distintas y se quedó con la mejor. Es como buscar el punto más bajo de un terreno con niebla: si se parte desde un solo lugar, se puede quedar en un pozo chico sin ver que más allá hay uno más profundo.
-- **Una prueba extra:** se repitió el ajuste usando solo la mitad de las frecuencias (una sí, una no) y se comprobó con la otra mitad. Es como estudiar con la mitad de los ejercicios y rendir con la otra mitad: si el resultado es igual de bueno, el modelo no se "aprendió de memoria" los puntos usados.
+- **Valores con sentido físico:** resistencias positivas y α entre 0,01 y 1. Es lo mismo que explicamos en las aclaraciones: así el programa no puede devolver un tejido "imposible". La única excepción es la segunda loma de Cole doble, que puede tener tamaño negativo para poder seguir mediciones raras (lo vemos en el vegetal).
+- **Buenos puntos de partida:** la búsqueda tiene que arrancar desde algún lado. Es como buscar el punto más bajo de un terreno con niebla: si se parte desde un mal lugar, se puede quedar en un pozo chico sin ver que más allá hay uno más profundo. Por eso los modelos se encadenan: Cole arranca desde los valores que da el **método de Ayllon** (lo explicamos abajo), y los modelos más complicados arrancan desde la solución de Cole. Además, Cole prueba otros 6 puntos de partida repartidos por si Ayllon falla.
 
-### El ajuste en la página web
+El ajuste está programado en JavaScript, en el archivo `modelos.js` de la página. Para la base completa usamos ese mismo archivo desde un script (`herramientas/calcular-base.js`), así los números del informe, el resumen de la página y el explorador de barridos salen exactamente del mismo código. Ajustar los 1443 barridos tarda unos 12 minutos.
 
-El mismo ajuste también está programado en la página (en JavaScript, archivo `ajuste.js`), con el mismo método, las mismas reglas y los mismos 15 puntos de partida. Da exactamente los mismos resultados que el notebook en Python, lo que sirve como control: dos programas distintos llegan a los mismos números.
+### El método de Ayllon: los valores de Cole sin probar y corregir
 
-En la sección del punto 3 se puede:
+El docente nos compartió una implementación del **método de Ayllon** (Ayllón, Seoane y Gil-Pita, 2009), una forma de sacar los parámetros de Cole sin el "probar y corregir" del ajuste. Se apoya en la geometría del diagrama de Cole-Cole.
 
-1. **Elegir un barrido** (humano, vegetal o fantoma) y ver sus puntos medidos en el diagrama de Cole-Cole y en el gráfico de frecuencia.
-2. **Ajustar a mano:** mover R0, R∞, fc y α para intentar que la línea del modelo pase por los puntos. El error se actualiza en vivo, así se ve que "ajustar" es justamente buscar los valores que lo hacen más chico.
-3. **Apretar "Ajuste automático"** y comparar lo que encontró la computadora con lo que habíamos logrado a mano. También aparece el error de la prueba con la otra mitad de los puntos.
+En el punto 1 vimos que el arco de Cole es un pedazo de circunferencia. Entonces:
 
-Al final de la sección hay una tabla con el ajuste automático de los tres barridos.
+1. **Se busca la circunferencia que mejor pasa por los puntos medidos.** Esto es una cuenta directa, de una sola vez: no hay que adivinar valores ni repetir nada.
+2. **Los dos lugares donde la circunferencia corta el eje horizontal son R∞ y R0**, como las dos puntas del arco.
+3. **α sale de qué tan abajo del eje quedó el centro.** En el caso Debye (α = 1) el centro está justo sobre el eje; cuanto más se hunde, más achatado es el arco y más chico es α.
+4. **fc es la frecuencia del punto medido más alto del arco** (donde −X es máxima), y τ = 1/(2π·fc).
 
-### Resultados
+Tiene dos ventajas: es rápido y no necesita valores iniciales. Por eso lo usamos como punto de partida del ajuste. Pero tiene límites que vimos con los datos:
 
-| Barrido | R0 \[Ω\] | R∞ \[Ω\] | fc | α | Error (NRMSE) |
+- **Supone una sola loma.** Si la medición tiene dos, la circunferencia queda en el medio de las dos y no describe ninguna.
+- **Necesita ver el arco.** Si la medición corta el arco antes de su punto más alto, se tiene solo un pedazo casi recto y la circunferencia que mejor pasa por ahí puede quedar "flotando" sin tocar el eje. Entonces no hay R0 ni R∞, y el método no da valores.
+- **fc solo puede ser una de las frecuencias medidas.** Si el equipo midió pocas frecuencias, fc queda aproximada.
+
+**Ayllon, Cole y Cole doble no son tres respuestas distintas.** Es un solo camino:
+
+1. **Ayllon** da los valores de Cole de forma directa.
+2. **El ajuste de Cole** arranca desde ahí y los corrige.
+3. **El ajuste de Cole doble** arranca desde la solución de Cole.
+
+Es como resolver un problema difícil empezando por una versión más simple: la versión simple no es la respuesta, pero ayuda a llegar.
+
+### Cómo comparamos los modelos
+
+Elegir "el que tiene menos error" parece lo obvio, pero tiene una trampa: **un modelo con más parámetros casi siempre ajusta un poco mejor**, aunque no describa mejor la muestra. Para no caer en eso usamos dos controles:
+
+- **BIC (criterio de información bayesiano).** Es un puntaje que premia el buen ajuste pero **resta puntos por cada parámetro extra**. Un modelo más complicado solo gana si la mejora en el ajuste vale los parámetros que agrega. En cada barrido "gana" el modelo con el mejor BIC.
+- **La prueba con la otra mitad.** Se ajusta el modelo usando solo la mitad de las frecuencias (una sí, una no) y se mide el error en la otra mitad, que el modelo no vio. Es como estudiar con la mitad de los ejercicios y rendir con la otra mitad: si el resultado es igual de bueno, el modelo no se "aprendió de memoria" los puntos usados.
+
+Para medir el error usamos el **NRMSE**, que dice, en porcentaje, cuánto se equivoca el modelo en promedio comparado con el tamaño de lo que se midió. Un 1 % quiere decir que la curva del modelo queda casi encima de los puntos medidos; un 35 % quiere decir que no se parecen.
+
+### Resultados en toda la base
+
+En los 1443 barridos, cada modelo ganó en este porcentaje:
+
+| Modelo | Gana en |
+| --- | --- |
+| Cole doble | 60,6 % |
+| Cole con retardo | 37,6 % |
+| Cole | 1,7 % |
+| Debye | 0,1 % |
+| Havriliak-Negami | 0 % |
+
+Separado por grupo (los errores son medianas, o sea, el valor del barrido "del medio" de cada grupo):
+
+| Grupo | Modelo que más gana | Error de Cole | Error de Cole doble | Cole doble con la otra mitad | Ayllon da valores en |
 | --- | --- | --- | --- | --- | --- |
-| Humana | 211,9 | 125,0 | 45,0 kHz | 0,56 | 1,4 % |
-| Vegetal | 3766,1 | 180,5 | 5,47 kHz | 1,00 (en el límite) | 32,8 % |
-| Fantoma de agar | 148,6 | 67,3 | 16,6 Hz | 0,68 | 3,9 % |
+| Humana (Ayllón, sin errores) | Cole con retardo (100 %) | 1,45 % | 0,24 % | 0,25 % | 100 % |
+| Humana (Ayllón, con errores) | Cole doble (61 %) | 0,93 % | 0,20 % | 0,20 % | 100 % |
+| Humana (González Correa) | Cole con retardo (69 %) | 7,01 % | 3,40 % | 3,86 % | 31 % |
+| Humana (De Lorenzo) | Cole doble (100 %) | 0,95 % | 0,45 % | 0,45 % | 100 % |
+| Vegetal | Cole doble (100 %) | 35,26 % | 0,91 % | 0,91 % | 100 % |
+| Fantoma de agar | Cole doble (77 %) | 3,60 % | 2,35 % | 2,31 % | 100 % |
 
-El **NRMSE** dice, en porcentaje, cuánto se equivoca el modelo en promedio comparado con el tamaño de lo que se midió. Un 1,4 % quiere decir que la curva del modelo queda casi encima de los puntos medidos; un 33 % quiere decir que no se parecen.
+Qué se ve grupo por grupo:
 
-**Humana: ajusta muy bien.** Con un error de 1,4 %, el modelo describe bien cómo baja la resistencia y la loma de la reactancia. Su fc (45 kHz) está en el mismo rango que los tejidos de la Tabla 1, lo cual tiene sentido. Lo único que no sigue es el final del rango: en las frecuencias más altas la reactancia medida vuelve a crecer, y el modelo de Cole no puede hacer eso (su reactancia siempre vuelve a cero). Es un efecto extra que el modelo no incluye.
+- **Humanas de Ayllón y De Lorenzo:** todos los modelos con forma de Cole ajustan bien (alrededor de 1 % o menos). Cole doble y Cole con retardo bajan el error a 0,2-0,5 %, porque siguen un efecto extra en las frecuencias más altas (la reactancia medida vuelve a crecer al final del rango) que el Cole común no puede seguir. En las mediciones sin errores gana Cole con retardo; en las que tienen errores agregados, gana más seguido Cole doble.
+- **Humanas de González Correa:** es el grupo que peor ajusta. Se midió de 5 kHz a 1 MHz, y en ese rango **el arco nunca llega a su punto más alto**: la reactancia sigue subiendo hasta la última frecuencia. Los modelos tienen que "imaginar" el resto del arco. Por la misma razón, Ayllon da valores solo en el 31 % de estos barridos.
+- **Vegetal:** es el caso que define la elección. Cole, Cole con retardo y Havriliak-Negami quedan en 35 % de error: con una sola loma no pueden seguir la medición. Cole doble baja a 0,9 %.
+- **Fantoma de agar:** Cole ya ajusta razonablemente (3,6 %) y Cole doble algo mejor (2,3 %).
 
-**Fantoma de agar: ajusta bien.** Error de 3,9 %. Su transición ocurre a frecuencias muy bajas (16,6 Hz), muy por debajo de la de los tejidos. Una posible razón es que se midió con solo dos electrodos, y en ese tipo de medición se mezcla lo que aporta la muestra con lo que aporta el contacto de los electrodos. Con este ajuste no se pueden separar esas dos cosas.
+En todos los grupos, el error de Cole doble con la otra mitad es casi igual al error normal. O sea, **Cole doble no está memorizando los puntos**: describe de verdad la forma de las curvas.
 
-**Vegetal: el modelo no sirve para esta medición.** El error es de casi 33 % y α quedó en el límite de 1: el programa "quería" ir más allá de lo permitido. Además, en las frecuencias más bajas la reactancia medida es positiva, y el modelo de Cole solo puede dar reactancia negativa. Los valores de la tabla son lo mejor que encontró el programa dentro de las reglas, pero **no describen realmente a esa muestra**. Se dejó igual en el informe en vez de cambiarlo por otro barrido que saliera mejor, porque mostrar cuándo el modelo falla también es un resultado.
+**Con la submuestra los resultados eran los mismos.** Antes de correr la base completa habíamos probado con una muestra al azar de hasta 15 barridos por grupo (77 en total). Ahí Cole doble ganaba en el 49 % y su peor error mediano era 3,7 %; con la base completa gana en el 61 % y su peor error mediano es 3,4 %. La conclusión no cambió.
 
-### Qué aprendemos de este punto
+### Valores de Cole en tres barridos de ejemplo
 
-- **Que el programa termine no quiere decir que el resultado sea bueno.** En los tres casos el ajuste "convergió" (encontró una respuesta), pero en el vegetal esa respuesta no sirve. Hay que mirar siempre el error y comparar los gráficos.
-- **El modelo de Cole es una simplificación.** Supone una sola transición (una sola loma). Cuando la muestra tiene más de un efecto, o la medición tiene efectos de los electrodos, el modelo no alcanza.
-- **Una muestra de cada tipo no alcanza para sacar conclusiones generales.** Las diferencias entre los tres resultados pueden deberse a la muestra, pero también a que se midieron con equipos y montajes distintos.
+La consigna pide los valores característicos de Cole. Estos son los de tres barridos de tipos de muestra distintos, obtenidos con Ayllon (directo) y con el ajuste de Cole (que arranca desde Ayllon):
 
-Datos: Dell'Osa, A. H., Bravo, N. Y. y Villanueva Jousset, T. (2025). [Single dispersion EIS measurements: a compilation](https://doi.org/10.5281/zenodo.15795175). Zenodo. Licencia CC BY 4.0.
+| Barrido | Método | R0 \[Ω\] | R∞ \[Ω\] | fc | α | Error |
+| --- | --- | --- | --- | --- | --- | --- |
+| ID 001, humana | Ayllon | 207,1 | 127,1 | 39,0 kHz | 0,64 | 2,4 % |
+| | Cole ajustado | 211,9 | 125,0 | 45,0 kHz | 0,56 | 1,4 % |
+| ID 1233, vegetal | Ayllon | 4369,2 | 151,7 | 3,66 kHz | 0,92 | 38,0 % |
+| | Cole ajustado | 3766,1 | 180,5 | 5,47 kHz | 1,00 (en el límite) | 32,8 % |
+| ID 1311, fantoma de agar | Ayllon | 144,1 | 68,7 | 20 Hz | 0,82 | 5,0 % |
+| | Cole ajustado | 148,6 | 67,3 | 16,6 Hz | 0,68 | 3,9 % |
+
+- **Ayllon queda cerca del ajuste**, pero siempre un poco peor. Es lógico: la circunferencia solo mira la forma del arco, no en qué frecuencia cae cada punto. El ajuste corrige eso.
+- **Humana:** Cole ajusta muy bien. Su fc (45 kHz) está en el mismo rango que los tejidos de la Tabla 1, lo cual tiene sentido.
+- **Fantoma:** su transición ocurre a frecuencias muy bajas (16,6 Hz), muy por debajo de la de los tejidos. Una posible razón es que se midió con solo dos electrodos, y en ese tipo de medición se mezcla lo que aporta la muestra con lo que aporta el contacto de los electrodos.
+- **Vegetal: estos valores no describen a la muestra.** Tanto Ayllon como Cole dan errores de más de 30 %, y α quedó en el límite de 1: el programa "quería" ir más allá de lo permitido. Además, en las frecuencias más bajas la reactancia medida es positiva, y el modelo de Cole solo puede dar reactancia negativa. Son lo mejor que se puede hacer con una sola loma, una especie de "Cole equivalente" que resume dos efectos en uno, pero no una descripción confiable.
+
+Con Cole doble, el mismo barrido vegetal baja a 1,0 % de error. Lo hace con una segunda loma de tamaño negativo cerca de los 450 Hz, que es justamente lo que le permite seguir la reactancia positiva de las frecuencias bajas.
+
+### Qué modelo elegimos y por qué
+
+**Elegimos Cole doble.** No gana en todos los grupos (en dos grupos humanos gana Cole con retardo), pero es **el único que nunca ajusta mal**: su peor error mediano es 3,4 %, mientras que Cole llega a 35 % y Cole con retardo también. Si hay que elegir una sola fórmula para toda la base, conviene la que sirve en todos lados.
+
+Hay que leerlo con cuidado: que Cole doble ajuste mejor **no quiere decir que todas las muestras tengan dos tipos de células**. Muchas veces la segunda loma está "absorbiendo" algo que no es de la muestra: el efecto de los cables en las frecuencias más altas o el de los electrodos en las más bajas. Se nota en dónde cae la segunda loma: en unos 7 de cada 10 barridos humanos queda por encima de la frecuencia más alta que se midió, y en unos 7 de cada 10 fantomas, por debajo de la más baja. O sea, fuera de lo medido, siguiendo un efecto que solo asoma en un borde del rango. Cole doble es la fórmula que mejor describe **las mediciones**, con todo lo que traen.
+
+### El punto 3 en la página web
+
+La sección del punto 3 tiene tres partes:
+
+1. **Los cinco modelos candidatos**, con una tarjeta para cada uno.
+2. **Resultado en la base:** el modelo elegido, un gráfico de en qué porcentaje de barridos gana cada modelo, otro con el error de cada modelo en cada grupo, y la tabla por grupo de arriba.
+3. **Ver un barrido de cerca:** se elige un grupo y cualquiera de sus barridos (o uno al azar). La página muestra los puntos medidos y las curvas de los modelos en el diagrama de Cole-Cole y en los gráficos de R y −X contra la frecuencia. Con las casillas se elige qué modelos ver; Ayllon aparece como una línea punteada. Abajo hay dos tablas: una con el error y el BIC de cada modelo en ese barrido, y otra con los valores de Cole según Ayllon, el ajuste de Cole y el de Cole doble.
+
+Los datos de cada grupo se cargan recién cuando se lo elige, porque toda la base junta pesa varios megas.
 
 ## Casos que vale la pena probar en la simulación
 
@@ -307,17 +399,20 @@ Estos son los experimentos que más muestran cómo funciona el modelo. Para cada
    - Se ve: la página no grafica y muestra un aviso.
    - Muestra: los límites físicos de los parámetros, explicados en la próxima sección.
 
-**Casos para el punto 3** (sección "Ajuste a mediciones reales"):
+**Casos para el punto 3** (sección "Ver un barrido de cerca"):
 
-1. **Ajustar a mano antes que la computadora.** Elegir el barrido humano y mover los controles tratando de que la línea pase por los puntos.
-   - Se ve: el error baja a medida que la curva se acerca a los puntos. Después, "Ajuste automático" llega a 1,4 %.
-   - Muestra: que ajustar es buscar los valores que hacen más chico el error; la computadora solo lo hace más rápido y mejor.
-2. **Un caso donde el modelo falla.** Elegir el barrido vegetal y apretar "Ajuste automático".
-   - Se ve: error de casi 33 %, α en el límite de 1 y puntos medidos con −X negativa (abajo del eje) que la línea del modelo no puede seguir.
-   - Muestra: que el programa siempre devuelve un resultado, pero hay que mirar el error y los gráficos para saber si sirve.
-3. **Una transición muy distinta.** Elegir el fantoma de agar.
-   - Se ve: la loma de −X está alrededor de 16 Hz, muy por debajo de la de los tejidos (decenas de kHz).
-   - Muestra: que el mismo modelo se puede ajustar a muestras muy distintas, pero los valores dependen también de cómo se midió (acá, con solo dos electrodos).
+1. **Un caso donde Cole falla.** Elegir el grupo Vegetal y dejar visibles Cole y Cole doble.
+   - Se ve: la línea de Cole no puede seguir los puntos (error de más de 30 %), y hay puntos medidos con −X negativa (abajo del eje). Cole doble pasa por encima de los puntos.
+   - Muestra: por qué hace falta comparar modelos en vez de suponer uno, y por qué se eligió Cole doble.
+2. **Ayllon contra el ajuste.** Elegir el barrido humano ID 001 con la casilla de Ayllon activada.
+   - Se ve: la línea punteada de Ayllon queda muy cerca de la de Cole. En la tabla de abajo, los valores son parecidos y el error de Ayllon es algo mayor (2,4 % contra 1,4 %).
+   - Muestra: que Ayllon es un buen punto de partida, y que el ajuste lo termina de corregir.
+3. **Cuando Ayllon no puede.** Elegir el grupo Humana (González Correa) y el barrido ID 1275.
+   - Se ve: no hay línea de Ayllon, y la tabla dice que la circunferencia no corta el eje real. La loma de −X sigue subiendo hasta la última frecuencia medida.
+   - Muestra: que Ayllon necesita ver el arco completo; acá la medición se corta antes del punto más alto.
+4. **El mismo modelo, curvas distintas.** Elegir varios barridos al azar con Cole doble visible.
+   - Se ve: curvas muy distintas entre sí, todas bien ajustadas por la misma fórmula.
+   - Muestra: que el modelo es uno solo, pero cada barrido tiene sus propios valores de parámetros.
 
 
 ### Dos formas de escribir α
@@ -329,7 +424,7 @@ Hay dos convenciones y conviene no mezclarlas:
 | Este TP | α | α = 1 | α más chico |
 | Cole y Cole (1941) y la guía de referencia | 1 − α | α = 0 | α más grande |
 
-No cambia el modelo, solo cómo se nombra el número. En este trabajo usamos los valores de α de la Tabla 1 tal como indica el enunciado, es decir, como exponente de la fórmula. Observamos que, con la otra convención, el exponente de los tejidos de la tabla quedaría entre 0,41 y 0,76, un rango más parecido al obtenido con mediciones reales en el punto 3 (0,56 para la muestra humana y 0,68 para el fantoma). Por eso la página permite ver ambas lecturas con un selector.
+No cambia el modelo, solo cómo se nombra el número. En este trabajo usamos los valores de α de la Tabla 1 tal como indica el enunciado, es decir, como exponente de la fórmula. Observamos que, con la otra convención, el exponente de los tejidos de la tabla quedaría entre 0,41 y 0,76, un rango más parecido al obtenido con mediciones reales en el punto 3 (en los grupos donde el arco se mide completo, el α típico del ajuste de Cole va de 0,56 en las humanas sin errores a 0,76 en los fantomas). Por eso la página permite ver ambas lecturas con un selector.
 
 ### Por qué ningún parámetro puede ser negativo
 
@@ -352,4 +447,5 @@ Si al medir un tejido real un ajuste devolviera α fuera de ese rango, lo más p
 - Guía de referencia del grupo: "El Modelo de Cole en Bioimpedancia" (analogías del parque acuático y del coro).
 - Enunciado del Trabajo Práctico 6, Modelos y Simulación 2026.
 - Dell'Osa, A. H., Bravo, N. Y. y Villanueva Jousset, T. (2025). [Single dispersion EIS measurements: a compilation](https://doi.org/10.5281/zenodo.15795175). Zenodo. Datos del punto 3, licencia CC BY 4.0.
-- Ayllón, D., Gil-Pita, R. y Seoane, F. (2016). [Detection and classification of measurement errors in bioimpedance spectroscopy](https://doi.org/10.1371/journal.pone.0156522). *PLoS ONE*. Origen del barrido humano usado en el punto 3.
+- Ayllón, D., Gil-Pita, R. y Seoane, F. (2016). [Detection and classification of measurement errors in bioimpedance spectroscopy](https://doi.org/10.1371/journal.pone.0156522). *PLoS ONE*. Origen de los barridos humanos de Ayllón usados en el punto 3.
+- Ayllón, D., Seoane, F. y Gil-Pita, R. (2009). [Cole equation and parameter estimation from electrical bioimpedance spectroscopy measurements: a comparative study](https://doi.org/10.1109/IEMBS.2009.5334494). *Conferencia IEEE EMBC*. Origen del método de Ayllon usado en el punto 3; la implementación en Python fue compartida por el docente.

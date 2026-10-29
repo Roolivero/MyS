@@ -1,7 +1,8 @@
 /*
  * Interfaz del punto 3: ¿qué modelo describe mejor la base de datos?
- * Usa RESUMEN_BASE (resumen-punto3.js), BARRIDOS (datos-punto3.js),
- * Modelos (modelos.js) y las utilidades de app.js.
+ * Usa RESUMEN_BASE (resumen-punto3.js), GRUPOS_BASE (barridos/indice.js), los datos de cada
+ * grupo (barridos/<grupo>.js, que se cargan cuando se eligen), Modelos (modelos.js) y las
+ * utilidades de app.js.
  */
 (() => {
   const COLOR = { debye: "#8c9997", cole: "#0e6e6a", cole_td: "#d9932a", hn: "#7b4fa3", cole2: "#c0462f", ayllon: "#3a7ca5" };
@@ -12,10 +13,32 @@
   const fmtTau = (t) => (t < 1e-3 ? `${fmtNum(t * 1e6, 2)} µs` : `${fmtNum(t * 1e3, 2)} ms`);
 
   const estado = {
-    actual: 0,
+    grupo: null,
+    b: null, // barrido elegido
+    ajustes: null, // sus cinco ajustes (parámetros precalculados en herramientas/calcular-base.js)
     visibles: new Set(["ayllon", "cole", "cole_td", "cole2"]),
-    cache: {}, // ajustes ya calculados por barrido
   };
+
+  // ---------- Carga de los datos de un grupo (barridos/<grupo>.js) ----------
+  const cargados = {};
+  const esperando = {};
+  window.registrarGrupo = (id, barridos) => {
+    cargados[id] = barridos;
+    (esperando[id] || []).forEach((ok) => ok(barridos));
+  };
+  function cargarGrupo(id) {
+    if (cargados[id]) return Promise.resolve(cargados[id]);
+    return new Promise((ok, mal) => {
+      if (!esperando[id]) {
+        esperando[id] = [];
+        const s = document.createElement("script");
+        s.src = `barridos/${id}.js`;
+        s.onerror = mal;
+        document.body.appendChild(s);
+      }
+      esperando[id].push(ok);
+    });
+  }
   let gNyq, gR, gX;
 
   // ---------- Tarjetas de los modelos ----------
@@ -31,7 +54,7 @@
   // ---------- Resultado en la base (precalculado en Python) ----------
   function resultadoBase() {
     const R = RESUMEN_BASE;
-    $("#p3-veredicto-texto").innerHTML = `En la submuestra (${R.totalAjustados} barridos ajustados), <b>Cole doble</b> es el mejor modelo en el ${fmtNum(R.ganaTotal.cole2, 0)} % de los barridos y es el único que ajusta bien en todos los grupos: su error típico nunca pasa del ${fmtNum(R.peorMediana.cole2, 1)} %. El segundo, <b>Cole con retardo</b>, gana en el ${fmtNum(R.ganaTotal.cole_td, 0)} % (sobre todo en mediciones humanas), pero en los vegetales su error llega al ${fmtNum(R.peorMediana.cole_td, 0)} %.`;
+    $("#p3-veredicto-texto").innerHTML = `En toda la base (${R.totalAjustados} barridos ajustados), <b>Cole doble</b> es el mejor modelo en el ${fmtNum(R.ganaTotal.cole2, 0)} % de los barridos y es el único que ajusta bien en todos los grupos: su error típico nunca pasa del ${fmtNum(R.peorMediana.cole2, 1)} %. El segundo, <b>Cole con retardo</b>, gana en el ${fmtNum(R.ganaTotal.cole_td, 0)} % (sobre todo en mediciones humanas), pero en los vegetales su error llega al ${fmtNum(R.peorMediana.cole_td, 0)} %.`;
 
     const ids = Modelos.LISTA.map((m) => m.id);
     new Chart($("#g3-gana"), {
@@ -73,7 +96,7 @@
 
     $("#p3-tabla-base tbody").innerHTML = R.grupos.map((g) => {
       if (!g.modelos) {
-        return `<tr><td>${g.nombre}</td><td>${g.enBase} / 0</td><td colspan="4" class="excluido">Excluido: ${g.excluido}</td></tr>`;
+        return `<tr><td>${g.nombre}</td><td>${g.enBase} / 0</td><td colspan="5" class="excluido">Excluido: ${g.excluido}</td></tr>`;
       }
       const gan = ids.reduce((a, b) => (g.modelos[b].gana > g.modelos[a].gana ? b : a));
       return `<tr>
@@ -83,32 +106,36 @@
         <td>${fmtNum(g.modelos.cole.nrmse, 2)} %</td>
         <td>${fmtNum(g.modelos.cole2.nrmse, 2)} %</td>
         <td>${fmtNum(g.modelos.cole2.val, 2)} %</td>
+        <td>${fmtNum(g.ayllon.valido, 0)} %${g.ayllon.nrmse === null ? "" : ` (error ${fmtNum(g.ayllon.nrmse, 2)} %)`}</td>
       </tr>`;
     }).join("");
   }
 
   // ---------- Explorador de un barrido ----------
   function selector() {
-    const sel = $(".selector-barrido");
-    const grupos = [...new Set(BARRIDOS.map((b) => b.grupoNombre))];
-    sel.innerHTML = "";
-    for (const g of grupos) {
-      const div = document.createElement("div");
-      div.className = "grupo-barrido";
-      div.innerHTML = `<span class="etq-grupo">${g}</span>`;
-      BARRIDOS.forEach((b, i) => {
-        if (b.grupoNombre !== g) return;
-        const btn = document.createElement("button");
-        btn.type = "button";
-        btn.textContent = `ID ${b.id}`;
-        btn.dataset.i = i;
-        btn.addEventListener("click", () => seleccionar(i));
-        div.appendChild(btn);
-      });
-      sel.appendChild(div);
+    const cont = $(".selector-barrido");
+    cont.innerHTML = `
+      <div class="grupo-barrido" id="p3-grupos"></div>
+      <div class="grupo-barrido">
+        <label class="etq-grupo" for="p3-id">Barrido</label>
+        <select id="p3-id"></select>
+        <button type="button" id="p3-azar">Barrido al azar</button>
+      </div>`;
+    for (const g of GRUPOS_BASE) {
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.textContent = `${g.nombre} (${g.ids.length})`;
+      btn.dataset.g = g.id;
+      btn.addEventListener("click", () => seleccionar(g.id, null));
+      $("#p3-grupos").appendChild(btn);
     }
-    const opciones = [{ id: "ayllon", nombre: "Ayllon (sin iterar)" }, ...Modelos.LISTA];
-    $("#p3-casillas").innerHTML = opciones.map((m) => `
+    $("#p3-id").addEventListener("change", (e) => seleccionar(estado.grupo, e.target.value));
+    $("#p3-azar").addEventListener("click", () => {
+      const ids = GRUPOS_BASE.find((g) => g.id === estado.grupo).ids;
+      seleccionar(estado.grupo, ids[Math.floor(Math.random() * ids.length)]);
+    });
+
+    $("#p3-casillas").innerHTML = [{ id: "ayllon", nombre: "Ayllon (sin iterar)" }, ...Modelos.LISTA].map((m) => `
       <label><input type="checkbox" value="${m.id}" ${estado.visibles.has(m.id) ? "checked" : ""}>
       <span class="punto-modelo" style="background:${COLOR[m.id]}"></span>${m.nombre}</label>`).join("");
     $("#p3-casillas").addEventListener("change", (e) => {
@@ -119,30 +146,41 @@
   }
 
   function ficha() {
-    const b = BARRIDOS[estado.actual];
+    const b = estado.b;
+    const g = GRUPOS_BASE.find((x) => x.id === estado.grupo);
     $("#p3-ficha").innerHTML = `
-      <div><dt>Grupo</dt><dd>${b.grupoNombre}</dd></div>
+      <div><dt>Grupo</dt><dd>${g.nombre}</dd></div>
       <div><dt>Equipo</dt><dd>${b.equipo}</dd></div>
       <div><dt>Electrodos</dt><dd>${b.electrodos}</dd></div>
       <div><dt>Frecuencias</dt><dd>${b.f.length}, de ${fmtHz(Math.min(...b.f))} a ${fmtHz(Math.max(...b.f))}</dd></div>
-      <div><dt>Origen</dt><dd>${b.fuente}</dd></div>
-      ${b.conversion ? `<div class="nota-ficha"><dt>Datos normalizados</dt><dd>${b.conversion}</dd></div>` : ""}`;
-    document.querySelectorAll(".selector-barrido button").forEach((btn) => btn.setAttribute("aria-pressed", +btn.dataset.i === estado.actual));
+      <div><dt>Origen</dt><dd>${g.fuente}</dd></div>
+      ${g.conversion ? `<div class="nota-ficha"><dt>Datos normalizados</dt><dd>${g.conversion}</dd></div>` : ""}`;
   }
 
-  function seleccionar(i) {
-    estado.actual = i;
+  /** Elige un barrido; con id = null, el primero del grupo. */
+  async function seleccionar(grupo, id) {
+    document.querySelectorAll("#p3-grupos button").forEach((btn) => btn.setAttribute("aria-pressed", btn.dataset.g === grupo));
+    if (grupo !== estado.grupo) {
+      const g = GRUPOS_BASE.find((x) => x.id === grupo);
+      $("#p3-id").innerHTML = g.ids.map((i) => `<option value="${i}">ID ${i}</option>`).join("");
+    }
+    estado.grupo = grupo;
+    $("#p3-estado").textContent = cargados[grupo] ? "" : "Cargando los barridos del grupo…";
+    let barridos;
+    try {
+      barridos = await cargarGrupo(grupo);
+    } catch {
+      $("#p3-estado").textContent = `No se pudo cargar barridos/${grupo}.js.`;
+      return;
+    }
+    if (estado.grupo !== grupo) return; // se eligió otro grupo mientras cargaba
+    $("#p3-estado").textContent = "";
+    const b = barridos.find((x) => x.id === id) || barridos[0];
+    $("#p3-id").value = b.id;
+    estado.b = b;
+    estado.ajustes = Modelos.LISTA.map((m) => ({ id: m.id, p: b.p[m.id], ...Modelos.metricas(m, b, b.p[m.id]) }));
     ficha();
-    const b = BARRIDOS[i];
-    if (estado.cache[b.id]) { dibujar(); return; }
-    $("#p3-estado").textContent = "Ajustando los cinco modelos…";
-    $("#p3-tabla-barrido tbody").innerHTML = "";
     dibujar();
-    setTimeout(() => {
-      estado.cache[b.id] = Modelos.ajustarTodos(b);
-      $("#p3-estado").textContent = "";
-      if (estado.actual === i) dibujar();
-    }, 30);
   }
 
   function escalaNyquist(chart, puntos) {
@@ -166,8 +204,9 @@
   }
 
   function dibujar() {
-    const b = BARRIDOS[estado.actual];
-    const ajustes = estado.cache[b.id];
+    const b = estado.b;
+    const ajustes = estado.ajustes;
+    if (!b) return;
     const gris = css("--tinta-2");
     const medN = b.f.map((f, i) => ({ x: b.R[i], y: -b.X[i], f }));
     const punto = (label, data) => ({ ...curva(label, gris, data), showLine: false, pointRadius: 2.4, pointBackgroundColor: gris });
@@ -247,7 +286,8 @@
     }
 
     const [Ri, dR, lfc, a] = cole.p;
-    filas.push(`<tr>${celda("cole", "Cole ajustado (arranca desde Ayllon)")}
+    const arranque = ay && ay.valido ? "arranca desde Ayllon" : "arranca desde puntos repartidos";
+    filas.push(`<tr>${celda("cole", `Cole ajustado (${arranque})`)}
       <td>${ohm(Ri)}</td><td>${ohm(Ri + dR)}</td><td>${fmtHz(10 ** lfc)}</td><td>${fmtTau(1 / (2 * Math.PI * 10 ** lfc))}</td>
       <td>${fmtNum(a, 3)}</td><td>${fmtNum(cole.nrmse, 2)} %</td></tr>`);
 
@@ -264,7 +304,7 @@
 
   // ---------- Arranque ----------
   document.addEventListener("DOMContentLoaded", () => {
-    if (typeof Chart === "undefined" || typeof BARRIDOS === "undefined") return;
+    if (typeof Chart === "undefined" || typeof GRUPOS_BASE === "undefined") return;
     tarjetas();
     resultadoBase();
 
@@ -278,7 +318,7 @@
     gX.options.scales.y.min = undefined;
 
     selector();
-    seleccionar(BARRIDOS.findIndex((b) => b.id === "1246"));
+    seleccionar("veg", "1246");
 
     let espera;
     window.addEventListener("resize", () => {

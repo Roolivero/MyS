@@ -182,15 +182,16 @@
               <th scope="col">Error de Cole</th>
               <th scope="col">Error de Cole doble</th>
               <th scope="col">Cole doble con la otra mitad</th>
+              <th scope="col">Ayllon da valores</th>
             </tr>
           </thead>
           <tbody></tbody>
         </table>
       </div>
-      <p class="nota-lectura nota-tabla">Submuestra: hasta 15 barridos por grupo, elegidos al azar (semilla 42); los grupos más chicos entran completos. "Gana" quiere decir que tiene el menor BIC, un criterio que premia el buen ajuste pero castiga tener más parámetros. Los errores son medianas. Este resumen se calculó en Python.</p>
+      <p class="nota-lectura nota-tabla">Se ajustaron todos los barridos de la base salvo los animales. "Gana" quiere decir que tiene el menor BIC, un criterio que premia el buen ajuste pero castiga tener más parámetros. Los errores son medianas. "Con la otra mitad": el modelo se ajusta con la mitad de las frecuencias y el error se mide en la otra mitad, que no vio. "Ayllon da valores": porcentaje de barridos donde la circunferencia corta el eje real, y error mediano de Ayllon en esos casos. El resumen se calculó con el mismo código de la página (herramientas/calcular-base.js).</p>
 
       <h3 class="subtitulo">Ver un barrido de cerca</h3>
-      <p class="intro">Elegí un barrido de ejemplo de cada grupo y mirá cómo se ajusta cada modelo a los puntos medidos. La página calcula los cinco ajustes en el navegador.</p>
+      <p class="intro">Elegí un grupo y cualquiera de sus barridos (o uno al azar) y mirá cómo se ajusta cada modelo a los puntos medidos. Son los mismos ajustes que se usaron para el resultado en la base.</p>
       <div class="selector-barrido" role="group" aria-label="Barrido de ejemplo"></div>
       <dl class="ficha" id="p3-ficha"></dl>
       <div class="casillas" id="p3-casillas" role="group" aria-label="Modelos a mostrar"></div>
@@ -253,7 +254,7 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
   <script src="cole.js"></script>
   <script src="app.js"></script>
-  <script src="datos-punto3.js"></script>
+  <script src="barridos/indice.js"></script>
   <script src="resumen-punto3.js"></script>
   <script src="modelos.js"></script>
   <script src="punto3.js"></script>
