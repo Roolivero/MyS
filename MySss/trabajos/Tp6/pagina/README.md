@@ -18,16 +18,16 @@ npx serve .
 - `cole.js`: el modelo (punto 1). Función `impedancia(f, p)` y `simular(p, frecuencias)`.
   No depende de la página.
 - `app.js`: interfaz, tabla de tejidos (punto 2), gráficos y exportación CSV.
-- `datos-punto3.js`: nueve barridos medidos del punto 3, tres por tipo de muestra
-  (humanas: ID 001, 025 y 050; vegetales: ID 1233, 1246 y 1260; fantomas de agar: ID 1311,
-  1371 y 1457), extraídos de `registros_EIS.mat` con Python. Criterio: entre los barridos que
-  cumplen las reglas (≥ 20 frecuencias, sin datos faltantes, ≥ 80 % de reactancia negativa y
-  pico de −X con al menos 3 puntos de cada lado), el primero, el del medio y el último de cada
-  tipo; las humanas, solo del grupo sin errores (ID 001 a 050). En las humanas las frecuencias
-  se dividieron por 2π porque venían guardadas como ω (rad/s).
-- `ajuste.js`: ajuste por mínimos cuadrados (Levenberg-Marquardt) con 15 puntos de partida y
-  límites físicos (R0 > R∞ > 0, 0,01 ≤ α ≤ 1). Da los mismos resultados que el notebook en Python.
-- `punto3.js`: interfaz del punto 3 (ajuste manual, ajuste automático y tabla de resultados).
+- `datos-punto3.js`: 17 barridos de ejemplo del punto 3 (el primero, el del medio y el último
+  de cada grupo de la base), extraídos de `registros_EIS.mat` con Python. Datos normalizados:
+  f en Hz, R y X en ohmios, X negativa = capacitiva.
+- `resumen-punto3.js`: resultado de la comparación de modelos en una submuestra de la base,
+  calculado en Python.
+- `modelos.js`: los cinco modelos candidatos (Debye, Cole, Cole con retardo, Havriliak-Negami y
+  Cole doble), el ajuste por mínimos cuadrados (Levenberg-Marquardt), el BIC y el método de
+  Ayllon, que da los valores de Cole sin iterar y sirve de punto de partida del ajuste.
+- `punto3.js`: interfaz del punto 3 (resultado en la base, explorador de barridos y tabla de
+  valores de Cole por Ayllon).
 - `index.html` / `styles.css`: estructura y estilos.
 
 ## Ecuación implementada

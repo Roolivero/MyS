@@ -188,6 +188,44 @@ const Modelos = (() => {
     return { p: T.aFis(q), costo };
   }
 
+  // ---------- Método de Ayllon (Ayllón et al., 2009, doi:10.1109/IEMBS.2009.5334494) ----------
+  // Ajusta una circunferencia a los puntos (R, X) por mínimos cuadrados lineales, sin iterar.
+  // Los cortes con el eje real dan R∞ y R0; la altura del centro, α; el pico de −X medido, fc.
+  // Sigue la implementación en Python de la cátedra (ayllon_modificado.py), con f en Hz.
+  function ayllon(datos) {
+    const n = datos.f.length;
+    const X = datos.R;
+    const Y = datos.X;
+    const media = (v) => v.reduce((s, x) => s + x, 0) / n;
+    const xm = media(X);
+    const ym = media(Y);
+    const m2 = media(X.map((x, i) => x * x + Y[i] * Y[i]));
+    let a11 = 0, a12 = 0, a22 = 0, b1 = 0, b2 = 0;
+    for (let i = 0; i < n; i++) {
+      const dx = X[i] - xm;
+      const dy = Y[i] - ym;
+      const d2 = X[i] * X[i] + Y[i] * Y[i] - m2;
+      a11 += -2 * dx * dx;
+      a12 += -2 * dy * dx;
+      a22 += -2 * dy * dy;
+      b1 += d2 * dx;
+      b2 += d2 * dy;
+    }
+    const centro = resolver([[a11, a12], [a12, a22]], [-b1, -b2]);
+    if (!centro) return null;
+    const [x0, y0] = centro;
+    const R2 = x0 * x0 + y0 * y0 + media(X.map((x, i) => x * x + Y[i] * Y[i] - 2 * x0 * x - 2 * y0 * Y[i]));
+    const geo = Math.sqrt(R2 - y0 * y0); // NaN si la circunferencia no corta el eje real
+    const Rinf = x0 - geo;
+    const R0 = x0 + geo;
+    let alpha = 1 - (2 / Math.PI) * Math.atan(y0 / geo);
+    if (alpha > 1) alpha = 1 + Math.atan(y0 / geo) / (2 * Math.PI);
+    const fc = datos.f[Y.indexOf(Math.min(...Y))]; // frecuencia del pico de −X medido
+    const p = [Rinf, R0 - Rinf, Math.log10(fc), alpha];
+    const valido = p.every(Number.isFinite) && Rinf > 0 && R0 > Rinf;
+    return { Rinf, R0, fc, tau: 1 / (2 * Math.PI * fc), alpha, x0, y0, radio: Math.sqrt(R2), p, valido };
+  }
+
   function mejorDe(modelo, datos, inicios) {
     const T = transformador(modelo, datos);
     let mejor = null;
@@ -198,7 +236,10 @@ const Modelos = (() => {
     return mejor.p;
   }
 
-  /** Ajusta los cinco modelos a un barrido. Los más complejos arrancan desde la solución de Cole. */
+  /**
+   * Ajusta los cinco modelos a un barrido. Cole arranca desde el método de Ayllon (y, por si
+   * la circunferencia falla, desde puntos repartidos); los más complejos, desde la solución de Cole.
+   */
   function ajustarTodos(datos) {
     const fmin = Math.min(...datos.f);
     const fmax = Math.max(...datos.f);
@@ -211,7 +252,10 @@ const Modelos = (() => {
     const lfs = [1, 2, 3].map((i) => l0 + ((l1 - l0) * i) / 4);
 
     const res = {};
-    res.cole = mejorDe(POR_ID.cole, datos, lfs.flatMap((lf) => [0.5, 0.9].map((a) => [Ri, dR, lf, a])));
+    const ay = ayllon(datos);
+    const iniCole = lfs.flatMap((lf) => [0.5, 0.9].map((a) => [Ri, dR, lf, a]));
+    if (ay && ay.valido) iniCole.unshift(ay.p);
+    res.cole = mejorDe(POR_ID.cole, datos, iniCole);
     const [cRi, cdR, clf, ca] = res.cole;
     res.debye = mejorDe(POR_ID.debye, datos, [[cRi, cdR, clf], [Ri, dR, (l0 + l1) / 2]]);
     res.cole_td = mejorDe(POR_ID.cole_td, datos, [[cRi, cdR, clf, ca, 0], [cRi, cdR, clf, ca, 5]]);
@@ -230,7 +274,7 @@ const Modelos = (() => {
     return POR_ID[id].z(f, p);
   }
 
-  return { LISTA, POR_ID, ajustarTodos, evaluar, metricas };
+  return { LISTA, POR_ID, ajustarTodos, evaluar, metricas, ayllon };
 })();
 
 if (typeof module !== "undefined") module.exports = Modelos;

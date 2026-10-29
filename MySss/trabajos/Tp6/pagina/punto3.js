@@ -4,15 +4,16 @@
  * Modelos (modelos.js) y las utilidades de app.js.
  */
 (() => {
-  const COLOR = { debye: "#8c9997", cole: "#0e6e6a", cole_td: "#d9932a", hn: "#7b4fa3", cole2: "#c0462f" };
+  const COLOR = { debye: "#8c9997", cole: "#0e6e6a", cole_td: "#d9932a", hn: "#7b4fa3", cole2: "#c0462f", ayllon: "#3a7ca5" };
   const ELEGIDO = "cole2";
   const CORTO = { hum_ok: ["Humana", "sin errores"], hum_err: ["Humana", "con errores"], hum_gc: ["Humana", "G. Correa"], hum_dl: ["Humana", "De Lorenzo"], veg: "Vegetal", fan: "Fantoma" };
   const fmtNum = (v, d = 1) => v.toLocaleString("es-AR", { minimumFractionDigits: d, maximumFractionDigits: d });
   const nombre = (id) => Modelos.POR_ID[id].nombre;
+  const fmtTau = (t) => (t < 1e-3 ? `${fmtNum(t * 1e6, 2)} µs` : `${fmtNum(t * 1e3, 2)} ms`);
 
   const estado = {
     actual: 0,
-    visibles: new Set(["cole", "cole_td", "cole2"]),
+    visibles: new Set(["ayllon", "cole", "cole_td", "cole2"]),
     cache: {}, // ajustes ya calculados por barrido
   };
   let gNyq, gR, gX;
@@ -106,7 +107,8 @@
       });
       sel.appendChild(div);
     }
-    $("#p3-casillas").innerHTML = Modelos.LISTA.map((m) => `
+    const opciones = [{ id: "ayllon", nombre: "Ayllon (sin iterar)" }, ...Modelos.LISTA];
+    $("#p3-casillas").innerHTML = opciones.map((m) => `
       <label><input type="checkbox" value="${m.id}" ${estado.visibles.has(m.id) ? "checked" : ""}>
       <span class="punto-modelo" style="background:${COLOR[m.id]}"></span>${m.nombre}</label>`).join("");
     $("#p3-casillas").addEventListener("change", (e) => {
@@ -177,6 +179,17 @@
 
     if (ajustes) {
       const fs = Cole.logspace(Math.min(...b.f), Math.max(...b.f), 300);
+      const ay = Modelos.ayllon(b);
+      if (ay && ay.valido && estado.visibles.has("ayllon")) {
+        const z = fs.map((f) => ({ f, ...Modelos.evaluar("cole", f, ay.p) }));
+        const n = z.map((q) => ({ x: q.re, y: -q.im, f: q.f }));
+        const etq = "Ayllon (sin iterar)";
+        setsN.push(curva(etq, COLOR.ayllon, n, true));
+        setsR.push(curva(etq, COLOR.ayllon, z.map((q) => ({ x: q.f, y: q.re })), true));
+        setsX.push(curva(etq, COLOR.ayllon, z.map((q) => ({ x: q.f, y: -q.im })), true));
+        todos = todos.concat(n);
+      }
+      tablaAyllon(b, ay, ajustes);
       for (const a of ajustes) {
         if (!estado.visibles.has(a.id)) continue;
         const z = fs.map((f) => ({ f, ...Modelos.evaluar(a.id, f, a.p) }));
@@ -213,6 +226,40 @@
         <td>${a.id === mejor.id ? "Mejor para este barrido" : ""}</td>
       </tr>`;
     }).join("");
+  }
+
+  // ---------- Valores de Cole: Ayllon, Cole ajustado y Cole doble ----------
+  function tablaAyllon(b, ay, ajustes) {
+    const cole = ajustes.find((a) => a.id === "cole");
+    const doble = ajustes.find((a) => a.id === "cole2");
+    const ohm = (v) => `${fmtNum(v, 1)} Ω`;
+    const celda = (id, txt) => `<td><span class="punto-modelo" style="background:${COLOR[id]}"></span>${txt}</td>`;
+    const filas = [];
+
+    if (ay && ay.valido) {
+      const err = Modelos.metricas(Modelos.POR_ID.cole, b, ay.p).nrmse;
+      filas.push(`<tr>${celda("ayllon", "Ayllon (circunferencia, sin iterar)")}
+        <td>${ohm(ay.Rinf)}</td><td>${ohm(ay.R0)}</td><td>${fmtHz(ay.fc)}</td><td>${fmtTau(ay.tau)}</td>
+        <td>${fmtNum(ay.alpha, 3)}</td><td>${fmtNum(err, 2)} %</td></tr>`);
+    } else {
+      filas.push(`<tr>${celda("ayllon", "Ayllon (circunferencia, sin iterar)")}
+        <td colspan="6" class="excluido">La circunferencia no corta el eje real: el método no da valores para este barrido.</td></tr>`);
+    }
+
+    const [Ri, dR, lfc, a] = cole.p;
+    filas.push(`<tr>${celda("cole", "Cole ajustado (arranca desde Ayllon)")}
+      <td>${ohm(Ri)}</td><td>${ohm(Ri + dR)}</td><td>${fmtHz(10 ** lfc)}</td><td>${fmtTau(1 / (2 * Math.PI * 10 ** lfc))}</td>
+      <td>${fmtNum(a, 3)}</td><td>${fmtNum(cole.nrmse, 2)} %</td></tr>`);
+
+    const [Ri2, d1, l1, a1, d2, l2, a2] = doble.p;
+    filas.push(`<tr>${celda("cole2", "Cole doble (arranca desde Cole)")}
+      <td>${ohm(Ri2)}</td><td>ΔR₁ = ${ohm(d1)}, ΔR₂ = ${ohm(d2)}</td>
+      <td>${fmtHz(10 ** l1)} y ${fmtHz(10 ** l2)}</td>
+      <td>${fmtTau(1 / (2 * Math.PI * 10 ** l1))} y ${fmtTau(1 / (2 * Math.PI * 10 ** l2))}</td>
+      <td>${fmtNum(a1, 3)} y ${fmtNum(a2, 3)}</td><td>${fmtNum(doble.nrmse, 2)} %</td></tr>`);
+
+    $("#p3-tabla-ayllon tbody").innerHTML = filas.join("");
+    $("#p3-nota-ayllon").textContent = "τ = 1 / (2π·fc). En Ayllon, fc es la frecuencia medida donde −X es máxima, así que solo puede tomar una de las frecuencias del barrido. En Cole doble hay dos lomas: se muestran los valores de cada una y, en lugar de R0, el tamaño de cada loma (ΔR₂ puede ser negativo). Cuando el barrido tiene dos lomas (vegetales), los valores de Ayllon y de Cole son un Cole equivalente que resume las dos en una sola.";
   }
 
   // ---------- Arranque ----------
